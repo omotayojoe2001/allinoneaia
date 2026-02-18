@@ -1,0 +1,209 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { Plus, Trash2, Edit, ArrowLeft } from "lucide-react";
+import { Link } from "react-router-dom";
+
+export default function Appointments() {
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [open, setOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [form, setForm] = useState({ customer_id: "", title: "", description: "", date: "", time: "", status: "scheduled" });
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchAppointments();
+    fetchCustomers();
+  }, []);
+
+  const fetchAppointments = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase.from("appointments").select("*, customers(name)").eq("user_id", user.id).order("date", { ascending: false });
+    setAppointments(data || []);
+  };
+
+  const fetchCustomers = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase.from("customers").select("*").eq("user_id", user.id);
+    setCustomers(data || []);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const payload = {
+      user_id: user.id,
+      customer_id: form.customer_id || null,
+      title: form.title,
+      description: form.description,
+      date: form.date,
+      time: form.time,
+      status: form.status
+    };
+
+    if (editId) {
+      const { error } = await supabase.from("appointments").update(payload).eq("id", editId);
+      if (error) {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: "Success", description: "Appointment updated" });
+        setOpen(false);
+        setEditId(null);
+        setForm({ customer_id: "", title: "", description: "", date: "", time: "", status: "scheduled" });
+        fetchAppointments();
+      }
+    } else {
+      const { error } = await supabase.from("appointments").insert(payload);
+      if (error) {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: "Success", description: "Appointment created" });
+        setOpen(false);
+        setForm({ customer_id: "", title: "", description: "", date: "", time: "", status: "scheduled" });
+        fetchAppointments();
+      }
+    }
+  };
+
+  const handleEdit = (appointment: any) => {
+    setEditId(appointment.id);
+    setForm({
+      customer_id: appointment.customer_id || "",
+      title: appointment.title,
+      description: appointment.description || "",
+      date: appointment.date,
+      time: appointment.time,
+      status: appointment.status
+    });
+    setOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    const { error } = await supabase.from("appointments").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Success", description: "Appointment deleted" });
+      fetchAppointments();
+    }
+  };
+
+  return (
+    <div className="flex-1 overflow-y-auto px-6 py-8">
+      <div className="max-w-6xl mx-auto">
+      <Link to="/business" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
+        <ArrowLeft className="w-4 h-4" /> Back
+      </Link>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Appointments</h1>
+        <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setEditId(null); setForm({ customer_id: "", title: "", description: "", date: "", time: "", status: "scheduled" }); } }}>
+          <DialogTrigger asChild>
+            <Button><Plus className="w-4 h-4 mr-2" />New Appointment</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{editId ? "Edit Appointment" : "New Appointment"}</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label>Customer</Label>
+                <Select value={form.customer_id} onValueChange={(v) => setForm({ ...form, customer_id: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select customer (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {customers.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Title *</Label>
+                <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
+              </div>
+              <div>
+                <Label>Description</Label>
+                <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+              </div>
+              <div>
+                <Label>Date *</Label>
+                <Input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} required />
+              </div>
+              <div>
+                <Label>Time *</Label>
+                <Input type="time" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} required />
+              </div>
+              <div>
+                <Label>Status</Label>
+                <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="scheduled">Scheduled</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button type="submit" className="w-full">{editId ? "Update" : "Create"} Appointment</Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {appointments.map((apt) => (
+              <tr key={apt.id}>
+                <td className="px-4 py-3 font-medium">{apt.title}</td>
+                <td className="px-4 py-3">{apt.customers?.name || "N/A"}</td>
+                <td className="px-4 py-3">{apt.date}</td>
+                <td className="px-4 py-3">{apt.time}</td>
+                <td className="px-4 py-3">
+                  <span className={`px-2 py-1 rounded text-xs ${
+                    apt.status === "completed" ? "bg-green-100 text-green-800" :
+                    apt.status === "cancelled" ? "bg-red-100 text-red-800" :
+                    "bg-blue-100 text-blue-800"
+                  }`}>
+                    {apt.status}
+                  </span>
+                </td>
+                <td className="px-4 py-3 flex gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => handleEdit(apt)}>
+                    <Edit className="w-4 h-4 text-blue-500" />
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleDelete(apt.id)}>
+                    <Trash2 className="w-4 h-4 text-red-500" />
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      </div>
+    </div>
+  );
+}
