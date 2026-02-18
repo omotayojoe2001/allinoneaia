@@ -609,6 +609,56 @@ export default function StockManagement() {
                 </div>
               </div>
             </div>
+
+            <div className="bg-white rounded-lg border p-4">
+              <h3 className="font-semibold mb-4">Transaction Details</h3>
+              <div className="flex gap-2 mb-4">
+                <Input placeholder="Search customer..." value={reportFilter.customer} onChange={(e) => setReportFilter({ ...reportFilter, customer: e.target.value })} className="w-48" />
+                <Input type="date" value={reportFilter.startDate} onChange={(e) => setReportFilter({ ...reportFilter, startDate: e.target.value })} className="w-40" placeholder="Start date" />
+                <Input type="date" value={reportFilter.endDate} onChange={(e) => setReportFilter({ ...reportFilter, endDate: e.target.value })} className="w-40" placeholder="End date" />
+                <Button variant="outline" onClick={() => setReportFilter({ type: "all", customer: "", startDate: "", endDate: "" })}>Clear</Button>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Sale #</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Customer</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Items</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Total</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Payment</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Date</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Time</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {paginatedReports.map(s => {
+                      const items = JSON.parse(s.items || "[]");
+                      return (
+                        <tr key={s.id}>
+                          <td className="px-4 py-3 text-sm font-mono">{s.sale_number}</td>
+                          <td className="px-4 py-3 text-sm">{s.customer_name || "Walk-in"}</td>
+                          <td className="px-4 py-3 text-sm">{items.length} item(s)</td>
+                          <td className="px-4 py-3 text-sm font-semibold">{currency}{parseFloat(s.total).toFixed(2)}</td>
+                          <td className="px-4 py-3 text-sm capitalize">{s.payment_method}</td>
+                          <td className="px-4 py-3 text-sm">{new Date(s.created_at).toLocaleDateString()}</td>
+                          <td className="px-4 py-3 text-sm">{new Date(s.created_at).toLocaleTimeString()}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              {totalReportPages > 1 && (
+                <div className="flex items-center justify-between mt-4">
+                  <p className="text-sm text-gray-600">Page {reportPage} of {totalReportPages}</p>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => setReportPage(p => Math.max(1, p - 1))} disabled={reportPage === 1}>Previous</Button>
+                    <Button variant="outline" size="sm" onClick={() => setReportPage(p => Math.min(totalReportPages, p + 1))} disabled={reportPage === totalReportPages}>Next</Button>
+                  </div>
+                </div>
+              )}
+            </div>
             <Button><Download className="w-4 h-4 mr-2" />Download Full Report</Button>
           </div>
         )}
