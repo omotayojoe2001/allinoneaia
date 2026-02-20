@@ -1,7 +1,13 @@
-import { Palette, FileText, Image, Video, Youtube, Mic, Plus, ArrowRight } from "lucide-react";
+import { Palette, FileText, Image, Video, Youtube, Mic, Plus, ArrowRight, FileEdit, CheckCircle2, Presentation, TrendingUp, Cpu, VideoIcon } from "lucide-react";
 
 const tools = [
   { name: "AI Writer", desc: "Generate blog posts, captions, ad copy, scripts, and more with AI", icon: FileText, count: "8 created today", action: "Start Writing" },
+  { name: "Document Editor", desc: "Edit documents, reports, and articles with AI-powered suggestions", icon: FileEdit, count: "5 edited", action: "Edit Document" },
+  { name: "Grammar Check", desc: "Check and fix grammar, spelling, punctuation, and style issues", icon: CheckCircle2, count: "12 checked", action: "Check Grammar" },
+  { name: "Presentation", desc: "Create professional presentations and slide decks with AI assistance", icon: Presentation, count: "3 created", action: "Create Presentation" },
+  { name: "SEO & Marketing AI", desc: "Optimize content for search engines and generate marketing copy", icon: TrendingUp, count: "6 optimized", action: "Optimize SEO" },
+  { name: "LM Studio", desc: "Run local AI models for free - privacy-focused content generation", icon: Cpu, count: "Free", action: "Launch Studio" },
+  { name: "Video Creator", desc: "Create full videos from scripts with AI voiceovers and visuals", icon: VideoIcon, count: "2 created", action: "Create Video" },
   { name: "Image Generator", desc: "Create stunning graphics, thumbnails, banners, and social visuals from text prompts", icon: Image, count: "3 generated", action: "Generate Image" },
   { name: "Video Editor", desc: "Edit, trim, and enhance video content with AI-powered tools", icon: Video, count: "1 in progress", action: "Edit Video" },
   { name: "Shorts Creator", desc: "Auto-generate short-form videos for TikTok, Instagram Reels, YouTube Shorts, and more", icon: Youtube, count: "2 this week", action: "Create Short" },

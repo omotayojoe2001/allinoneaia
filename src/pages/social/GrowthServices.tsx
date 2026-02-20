@@ -55,35 +55,21 @@ export default function GrowthServices() {
   const loadRealServices = async () => {
     setLoadingServices(true);
     try {
-      // Fetch from Supabase database
-      const { data, error } = await supabase
-        .from('kclaut_services')
-        .select('*')
-        .order('category', { ascending: true });
+      // Fetch from KClaut API via proxy
+      const servicesData = await kclautAPI.getServices();
       
-      if (error) throw error;
+      if (!Array.isArray(servicesData)) {
+        throw new Error('Invalid response from KClaut API');
+      }
       
-      // Transform database format to KClautService format
-      const servicesData = data.map(s => ({
-        service: s.service_id,
-        name: s.name,
-        type: s.type || '',
-        rate: s.rate.toString(),
-        min: s.min_order.toString(),
-        max: s.max_order.toString(),
-        category: s.category,
-        refill: s.refill,
-        cancel: s.cancel
-      }));
-      
-      console.log("Loaded services from database:", servicesData.length);
+      console.log("Loaded services from KClaut API:", servicesData.length);
       setServices(servicesData);
       setFilteredServices(servicesData);
     } catch (error) {
-      console.error("Failed to load services:", error);
+      console.error("Failed to load services from API:", error);
       toast({ 
         title: "Error", 
-        description: "Failed to load services from database", 
+        description: "Failed to load services from KClaut API", 
         variant: "destructive" 
       });
       setServices([]);
@@ -367,7 +353,8 @@ export default function GrowthServices() {
                       <tbody>
                         {Array.isArray(filteredServices) && filteredServices.map(service => {
                           const wholesaleRate = parseFloat(service.rate);
-                          const estimatedUserRate = wholesaleRate * 1.7; // 70% markup estimate
+                          const markup = 0.60; // 60% profit
+                          const userRate = wholesaleRate * (1 + markup);
                           
                           return (
                             <tr key={service.service} className="border-b hover:bg-muted/50">
@@ -385,8 +372,9 @@ export default function GrowthServices() {
                               </td>
                               <td className="py-3 px-2">
                                 <div>
-                                  <span className="font-semibold text-green-600">{formatAmount(estimatedUserRate)}</span>
-                                  <span className="text-xs text-muted-foreground block">Wholesale: {formatAmount(wholesaleRate)}</span>
+                                  <span className="font-semibold text-green-600">{formatAmount(userRate)}</span>
+                                  <span className="text-xs text-muted-foreground block">Cost: {formatAmount(wholesaleRate)}</span>
+                                  <span className="text-xs text-green-600 block">Profit: {formatAmount(wholesaleRate * markup)}</span>
                                 </div>
                               </td>
                               <td className="py-3 px-2 text-sm text-muted-foreground">

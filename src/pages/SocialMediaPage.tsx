@@ -1,39 +1,46 @@
 import { Share2, Calendar, TrendingUp, Users, ShoppingCart, Plus, ArrowRight } from "lucide-react";
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/lib/supabase";
 
 const tabs = ["Overview", "Scheduler", "Growth Services", "Analytics"] as const;
 
-const scheduledPosts = [
-  { platform: "Instagram", content: "New product launch 🚀", status: "Scheduled", time: "Today 5:00 PM" },
-  { platform: "Twitter", content: "Thread: AI trends in 2026", status: "Published", time: "Today 10:00 AM" },
-  { platform: "LinkedIn", content: "Company milestone update", status: "Draft", time: "—" },
-  { platform: "TikTok", content: "Behind the scenes video", status: "Scheduled", time: "Tomorrow 12:00 PM" },
-];
-
-const growthServices = [
-  { platform: "Instagram", services: [
-    { name: "Followers", options: [{ qty: "1,000", price: "$12" }, { qty: "5,000", price: "$45" }, { qty: "10,000", price: "$79" }] },
-    { name: "Likes", options: [{ qty: "500", price: "$5" }, { qty: "2,000", price: "$15" }, { qty: "5,000", price: "$30" }] },
-  ]},
-  { platform: "TikTok", services: [
-    { name: "Followers", options: [{ qty: "1,000", price: "$10" }, { qty: "5,000", price: "$38" }, { qty: "10,000", price: "$65" }] },
-    { name: "Views", options: [{ qty: "10,000", price: "$8" }, { qty: "50,000", price: "$25" }, { qty: "100,000", price: "$45" }] },
-  ]},
-  { platform: "YouTube", services: [
-    { name: "Subscribers", options: [{ qty: "500", price: "$20" }, { qty: "2,000", price: "$60" }, { qty: "5,000", price: "$130" }] },
-    { name: "Views", options: [{ qty: "5,000", price: "$12" }, { qty: "20,000", price: "$35" }, { qty: "50,000", price: "$70" }] },
-  ]},
-  { platform: "Facebook", services: [
-    { name: "Page Likes", options: [{ qty: "1,000", price: "$15" }, { qty: "5,000", price: "$55" }, { qty: "10,000", price: "$90" }] },
-  ]},
-  { platform: "Twitter / X", services: [
-    { name: "Followers", options: [{ qty: "1,000", price: "$14" }, { qty: "5,000", price: "$50" }, { qty: "10,000", price: "$85" }] },
-  ]},
-];
-
 const SocialMediaPage = () => {
   const [activeTab, setActiveTab] = useState<typeof tabs[number]>("Overview");
+  const [posts, setPosts] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data: postsData } = await supabase
+      .from('scheduled_posts')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(4);
+
+    const { data: ordersData } = await supabase
+      .from('social_orders')
+      .select('*')
+      .eq('user_id', user.id);
+
+    if (postsData) setPosts(postsData);
+    if (ordersData) setOrders(ordersData);
+  };
+
+  const stats = {
+    totalFollowers: orders.filter(o => o.service_name?.includes('Follower')).reduce((sum, o) => sum + (o.quantity || 0), 0),
+    postsThisWeek: posts.filter(p => new Date(p.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length,
+    scheduledPosts: posts.filter(p => p.status === 'scheduled').length,
+    totalOrders: orders.length,
+    totalSpent: orders.reduce((sum, o) => sum + (o.total_price || 0), 0)
+  };
 
   return (
     <div className="flex-1 overflow-y-auto px-6 py-8">
@@ -45,7 +52,10 @@ const SocialMediaPage = () => {
             </h1>
             <p className="text-sm text-muted-foreground">Manage, schedule, grow, and monetize your social presence</p>
           </div>
-          <button className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors flex items-center gap-2">
+          <button 
+            onClick={() => navigate('/social/scheduler')}
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors flex items-center gap-2"
+          >
             <Plus className="w-4 h-4" /> New Post
           </button>
         </div>
@@ -67,32 +77,56 @@ const SocialMediaPage = () => {
         {activeTab === "Overview" && (
           <div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              {[
-                { label: "Total Followers", value: "24.5K", change: "+1.2K this month" },
-                { label: "Posts This Week", value: "12", change: "3 scheduled" },
-                { label: "Engagement Rate", value: "4.8%", change: "+0.3%" },
-                { label: "Platforms Connected", value: "5", change: "All active" },
-              ].map((s) => (
-                <div key={s.label} className="glass-card rounded-lg p-4">
-                  <div className="text-xl font-bold text-foreground">{s.value}</div>
-                  <div className="text-xs text-muted-foreground">{s.label}</div>
-                  <div className="text-xs text-primary mt-1">{s.change}</div>
-                </div>
-              ))}
+              <div className="glass-card rounded-lg p-4">
+                <div className="text-xl font-bold text-foreground">{stats.totalFollowers.toLocaleString()}</div>
+                <div className="text-xs text-muted-foreground">Total Growth Orders</div>
+                <div className="text-xs text-primary mt-1">From {stats.totalOrders} orders</div>
+              </div>
+              <div className="glass-card rounded-lg p-4">
+                <div className="text-xl font-bold text-foreground">{stats.postsThisWeek}</div>
+                <div className="text-xs text-muted-foreground">Posts This Week</div>
+                <div className="text-xs text-primary mt-1">{stats.scheduledPosts} scheduled</div>
+              </div>
+              <div className="glass-card rounded-lg p-4">
+                <div className="text-xl font-bold text-foreground">₦{stats.totalSpent.toLocaleString()}</div>
+                <div className="text-xs text-muted-foreground">Total Spent</div>
+                <div className="text-xs text-primary mt-1">On growth services</div>
+              </div>
+              <div className="glass-card rounded-lg p-4">
+                <div className="text-xl font-bold text-foreground">{stats.totalOrders}</div>
+                <div className="text-xs text-muted-foreground">Active Orders</div>
+                <div className="text-xs text-primary mt-1">All platforms</div>
+              </div>
             </div>
             <h3 className="text-foreground font-semibold mb-3">Recent Posts</h3>
             <div className="space-y-2">
-              {scheduledPosts.map((p) => (
-                <div key={p.content} className="glass-card rounded-lg p-4 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{p.content}</p>
-                    <p className="text-xs text-muted-foreground">{p.platform} · {p.time}</p>
-                  </div>
-                  <span className={`text-xs px-2.5 py-1 rounded-full ${p.status === "Published" ? "bg-green-500/15 text-green-400" : p.status === "Scheduled" ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground"}`}>
-                    {p.status}
-                  </span>
+              {posts.length === 0 ? (
+                <div className="glass-card rounded-lg p-8 text-center">
+                  <p className="text-muted-foreground">No posts yet. Create your first post!</p>
+                  <button 
+                    onClick={() => navigate('/social/scheduler')}
+                    className="mt-4 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm"
+                  >
+                    Create Post
+                  </button>
                 </div>
-              ))}
+              ) : (
+                posts.map((p) => (
+                  <div key={p.id} className="glass-card rounded-lg p-4 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{p.content}</p>
+                      <p className="text-xs text-muted-foreground">{p.platform} · {new Date(p.scheduled_time).toLocaleString()}</p>
+                    </div>
+                    <span className={`text-xs px-2.5 py-1 rounded-full capitalize ${
+                      p.status === 'published' ? 'bg-green-500/15 text-green-400' : 
+                      p.status === 'scheduled' ? 'bg-primary/15 text-primary' : 
+                      'bg-secondary text-muted-foreground'
+                    }`}>
+                      {p.status}
+                    </span>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         )}
@@ -102,9 +136,12 @@ const SocialMediaPage = () => {
           <div className="glass-card rounded-lg p-8 text-center">
             <Calendar className="w-10 h-10 text-primary mx-auto mb-3" />
             <h3 className="text-foreground font-semibold mb-1">Post Scheduler</h3>
-            <p className="text-sm text-muted-foreground mb-4">Schedule and manage posts across all platforms from one calendar</p>
-            <button className="bg-primary text-primary-foreground px-5 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
-              Open Calendar
+            <p className="text-sm text-muted-foreground mb-4">Schedule and manage posts across Twitter/X and LinkedIn</p>
+            <button 
+              onClick={() => navigate('/social/scheduler')}
+              className="bg-primary text-primary-foreground px-5 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+            >
+              Open Scheduler
             </button>
           </div>
         )}
@@ -149,13 +186,54 @@ const SocialMediaPage = () => {
 
         {/* Analytics */}
         {activeTab === "Analytics" && (
-          <div className="glass-card rounded-lg p-8 text-center">
-            <TrendingUp className="w-10 h-10 text-primary mx-auto mb-3" />
-            <h3 className="text-foreground font-semibold mb-1">Analytics Dashboard</h3>
-            <p className="text-sm text-muted-foreground mb-4">Track engagement, growth, and performance across all platforms</p>
-            <button className="bg-primary text-primary-foreground px-5 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
-              View Analytics
-            </button>
+          <div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+              <div className="glass-card rounded-lg p-4">
+                <div className="text-2xl font-bold text-foreground">{stats.totalOrders}</div>
+                <div className="text-sm text-muted-foreground">Total Orders</div>
+                <div className="text-xs text-primary mt-1">All time</div>
+              </div>
+              <div className="glass-card rounded-lg p-4">
+                <div className="text-2xl font-bold text-foreground">₦{stats.totalSpent.toLocaleString()}</div>
+                <div className="text-sm text-muted-foreground">Total Spent</div>
+                <div className="text-xs text-primary mt-1">On services</div>
+              </div>
+              <div className="glass-card rounded-lg p-4">
+                <div className="text-2xl font-bold text-foreground">{stats.totalFollowers.toLocaleString()}</div>
+                <div className="text-sm text-muted-foreground">Growth Delivered</div>
+                <div className="text-xs text-primary mt-1">Followers/Likes/Views</div>
+              </div>
+            </div>
+            <h3 className="text-foreground font-semibold mb-3">Recent Orders</h3>
+            <div className="space-y-2">
+              {orders.length === 0 ? (
+                <div className="glass-card rounded-lg p-8 text-center">
+                  <p className="text-muted-foreground">No orders yet. Browse growth services!</p>
+                  <button 
+                    onClick={() => navigate('/social/growth')}
+                    className="mt-4 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm"
+                  >
+                    Browse Services
+                  </button>
+                </div>
+              ) : (
+                orders.slice(0, 10).map((order) => (
+                  <div key={order.id} className="glass-card rounded-lg p-4 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{order.service_name}</p>
+                      <p className="text-xs text-muted-foreground">{order.quantity} units · ₦{order.total_price}</p>
+                    </div>
+                    <span className={`text-xs px-2.5 py-1 rounded-full capitalize ${
+                      order.status === 'completed' ? 'bg-green-500/15 text-green-400' : 
+                      order.status === 'processing' ? 'bg-blue-500/15 text-blue-400' : 
+                      'bg-yellow-500/15 text-yellow-400'
+                    }`}>
+                      {order.status}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         )}
       </div>

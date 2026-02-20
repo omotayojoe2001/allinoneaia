@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KClaut API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        .info {
+            color: blue;
+        }
+        h1 {
+            color: #333;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 KClaut API Test Page</h1>
+        <p>Test your KClaut API connection and fetch services</p>
+        
+        <div>
+            <button onclick="testBalance()">Test Balance</button>
+            <button onclick="testServices()">Fetch Services</button>
+            <button onclick="testAddOrder()">Test Add Order (Dry Run)</button>
+            <button onclick="clearResult()">Clear</button>
+        </div>
+
+        <div class="stats" id="stats" style="display: none;">
+            <div class="stat-card">
+                <div class="stat-value" id="totalServices">0</div>
+                <div class="stat-label">Total Services</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="platforms">0</div>
+                <div class="stat-label">Platforms</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="balance">-</div>
+                <div class="stat-label">Balance</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="status">-</div>
+                <div class="stat-label">API Status</div>
+            </div>
+        </div>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://gnqhignzuxmtpwneosax.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImducWhpZ256dXhtdHB3bmVvc2F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU1NzU5NzcsImV4cCI6MjA1MTE1MTk3N30.Aq-Aq-Aq-Aq-Aq-Aq-Aq-Aq-Aq-Aq-Aq-Aq-Aq-Aq';
+
+        function log(message, type = 'info') {
+            const result = document.getElementById('result');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'success' ? 'green' : type === 'error' ? 'red' : 'blue';
+            result.innerHTML += `<span style="color: ${color}">[${timestamp}] ${message}</span>\n`;
+            result.scrollTop = result.scrollHeight;
+        }
+
+        function clearResult() {
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('stats').style.display = 'none';
+        }
+
+        async function callKClautAPI(action, params = {}) {
+            try {
+                log(`Calling KClaut API: ${action}...`, 'info');
+                
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/kclaut-proxy`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'apikey': SUPABASE_ANON_KEY
+                    },
+                    body: JSON.stringify({ action, params })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+
+        async function testBalance() {
+            clearResult();
+            log('Testing KClaut Balance API...', 'info');
+            
+            try {
+                const data = await callKClautAPI('balance');
+                
+                if (data.balance) {
+                    log(`✅ Success! Balance: ${data.balance} ${data.currency}`, 'success');
+                    document.getElementById('balance').textContent = `${data.currency} ${parseFloat(data.balance).toLocaleString()}`;
+                    document.getElementById('status').textContent = '✅ Online';
+                    document.getElementById('stats').style.display = 'grid';
+                } else {
+                    log(`⚠️ Unexpected response: ${JSON.stringify(data, null, 2)}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Failed to fetch balance`, 'error');
+                document.getElementById('status').textContent = '❌ Offline';
+            }
+        }
+
+        async function testServices() {
+            clearResult();
+            log('Fetching all services from KClaut...', 'info');
+            
+            try {
+                const data = await callKClautAPI('services');
+                
+                if (Array.isArray(data)) {
+                    log(`✅ Success! Fetched ${data.length} services`, 'success');
+                    
+                    // Count platforms
+                    const platforms = new Set(data.map(s => s.category));
+                    
+                    // Update stats
+                    document.getElementById('totalServices').textContent = data.length;
+                    document.getElementById('platforms').textContent = platforms.size;
+                    document.getElementById('stats').style.display = 'grid';
+                    
+                    // Show first 10 services
+                    log('\n📋 First 10 services:', 'info');
+                    data.slice(0, 10).forEach(service => {
+                        log(`  ${service.service} - ${service.name} (${service.category}) - ${service.rate} per 1000`, 'info');
+                    });
+                    
+                    log(`\n... and ${data.length - 10} more services`, 'info');
+                    
+                    // Group by platform
+                    log('\n📊 Services by platform:', 'info');
+                    const grouped = {};
+                    data.forEach(s => {
+                        grouped[s.category] = (grouped[s.category] || 0) + 1;
+                    });
+                    Object.entries(grouped).sort((a, b) => b[1] - a[1]).forEach(([platform, count]) => {
+                        log(`  ${platform}: ${count} services`, 'info');
+                    });
+                    
+                } else {
+                    log(`⚠️ Unexpected response format: ${JSON.stringify(data, null, 2)}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Failed to fetch services`, 'error');
+            }
+        }
+
+        async function testAddOrder() {
+            clearResult();
+            log('⚠️ This is a DRY RUN - No actual order will be placed', 'info');
+            log('Testing order placement API structure...', 'info');
+            
+            const testOrder = {
+                service: 1, // Test service ID
+                link: 'https://instagram.com/test',
+                quantity: 100
+            };
+            
+            log(`\nTest order details:`, 'info');
+            log(`  Service ID: ${testOrder.service}`, 'info');
+            log(`  Link: ${testOrder.link}`, 'info');
+            log(`  Quantity: ${testOrder.quantity}`, 'info');
+            
+            log(`\n⚠️ To actually place an order, use the Growth Services page`, 'info');
+            log(`This test only validates the API structure`, 'info');
+        }
+
+        // Auto-run balance test on load
+        window.onload = () => {
+            log('🚀 KClaut API Test Page Loaded', 'success');
+            log('Click buttons above to test different API endpoints\n', 'info');
+        };
+    </script>
+</body>
+</html>

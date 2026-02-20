@@ -41,6 +41,7 @@ import Tasks from "@/pages/business/Tasks";
 import StaffManagement from "@/pages/business/StaffManagement";
 import SpreadsheetAI from "@/pages/business/SpreadsheetAI";
 import GrowthServices from "@/pages/social/GrowthServices";
+import SocialScheduler from "@/pages/social/SocialScheduler";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -79,6 +80,7 @@ const App = () => (
               <Route path="/content" element={<AppLayout><ContentStudioPage /></AppLayout>} />
               <Route path="/social" element={<AppLayout><SocialMediaPage /></AppLayout>} />
               <Route path="/social/growth" element={<AppLayout><GrowthServices /></AppLayout>} />
+              <Route path="/social/scheduler" element={<AppLayout><SocialScheduler /></AppLayout>} />
               <Route path="/business" element={<AppLayout><BusinessToolsPage /></AppLayout>} />
               <Route path="/business/sales" element={<AppLayout><SalesDashboard /></AppLayout>} />
               <Route path="/business/cashbook" element={<AppLayout><Cashbook /></AppLayout>} />
