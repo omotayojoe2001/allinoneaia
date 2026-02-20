@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { syncToGoogleCalendar, assignTaskToStaff } from "@/lib/calendar-integration";
+import { syncStaffToList } from "@/lib/staff-sync";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,20 +14,57 @@ import { Link } from "react-router-dom";
 
 export default function Tasks() {
   const [tasks, setTasks] = useState<any[]>([]);
+  const [staffList, setStaffList] = useState<any[]>([]);
+  const [ownerProfile, setOwnerProfile] = useState<any>(null);
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const [form, setForm] = useState({ title: "", description: "", priority: "medium", status: "pending", due_date: "" });
+  const [form, setForm] = useState({ title: "", description: "", priority: "medium", status: "pending", due_date: "", assigned_to: "", assign_to_self: false });
   const { toast } = useToast();
 
   useEffect(() => {
     fetchTasks();
+    fetchStaffList();
+    fetchOwnerProfile();
+    syncStaff();
   }, []);
+
+  const syncStaff = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await syncStaffToList(user.id);
+    fetchStaffList();
+  };
 
   const fetchTasks = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     const { data } = await supabase.from("tasks").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
-    setTasks(data || []);
+    if (data) {
+      const tasksWithStaff = await Promise.all(data.map(async (task) => {
+        if (task.assigned_to) {
+          const { data: staffMember } = await supabase.from("staff_list").select("name").eq("id", task.assigned_to).single();
+          return { ...task, staff_name: staffMember?.name };
+        }
+        return task;
+      }));
+      setTasks(tasksWithStaff);
+    } else {
+      setTasks([]);
+    }
+  };
+
+  const fetchStaffList = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase.from("staff_list").select("*").eq("user_id", user.id);
+    setStaffList(data || []);
+  };
+
+  const fetchOwnerProfile = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase.from("owner_profile").select("*").eq("user_id", user.id).single();
+    setOwnerProfile(data);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,7 +78,9 @@ export default function Tasks() {
       description: form.description,
       priority: form.priority,
       status: form.status,
-      due_date: form.due_date || null
+      due_date: form.due_date || null,
+      assigned_to: form.assign_to_self ? null : (form.assigned_to || null),
+      assigned_to_self: form.assign_to_self
     };
 
     if (editId) {
@@ -50,17 +91,27 @@ export default function Tasks() {
         toast({ title: "Success", description: "Task updated" });
         setOpen(false);
         setEditId(null);
-        setForm({ title: "", description: "", priority: "medium", status: "pending", due_date: "" });
+        setForm({ title: "", description: "", priority: "medium", status: "pending", due_date: "", assigned_to: "", assign_to_self: false });
         fetchTasks();
       }
     } else {
-      const { error } = await supabase.from("tasks").insert(payload);
+      const { error, data: newTask } = await supabase.from("tasks").insert(payload).select().single();
       if (error) {
         toast({ title: "Error", description: error.message, variant: "destructive" });
       } else {
-        toast({ title: "Success", description: "Task created" });
+        // Send notifications if assigned to staff
+        if (form.assigned_to && !form.assign_to_self) {
+          await assignTaskToStaff(newTask.id, form.assigned_to, form.title, form.due_date);
+          toast({ title: "Success", description: "Task created and staff notified" });
+        } else {
+          // Sync to Google Calendar
+          if (form.due_date) {
+            await syncToGoogleCalendar("task", newTask.id, form.title, form.description, new Date(form.due_date));
+          }
+          toast({ title: "Success", description: "Task created" });
+        }
         setOpen(false);
-        setForm({ title: "", description: "", priority: "medium", status: "pending", due_date: "" });
+        setForm({ title: "", description: "", priority: "medium", status: "pending", due_date: "", assigned_to: "", assign_to_self: false });
         fetchTasks();
       }
     }
@@ -73,7 +124,9 @@ export default function Tasks() {
       description: task.description || "",
       priority: task.priority,
       status: task.status,
-      due_date: task.due_date || ""
+      due_date: task.due_date || "",
+      assigned_to: task.assigned_to || "",
+      assign_to_self: task.assigned_to_self || false
     });
     setOpen(true);
   };
@@ -111,7 +164,7 @@ export default function Tasks() {
       </Link>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Tasks</h1>
-        <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setEditId(null); setForm({ title: "", description: "", priority: "medium", status: "pending", due_date: "" }); } }}>
+        <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setEditId(null); setForm({ title: "", description: "", priority: "medium", status: "pending", due_date: "", assigned_to: "", assign_to_self: false }); } }}>
           <DialogTrigger asChild>
             <Button><Plus className="w-4 h-4 mr-2" />New Task</Button>
           </DialogTrigger>
@@ -158,6 +211,39 @@ export default function Tasks() {
                 <Label>Due Date</Label>
                 <Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} />
               </div>
+              <div>
+                <Label>Assign To</Label>
+                <div className="flex items-center gap-2 mb-2">
+                  <input 
+                    type="checkbox" 
+                    id="assign_self" 
+                    checked={form.assign_to_self} 
+                    onChange={(e) => setForm({ ...form, assign_to_self: e.target.checked, assigned_to: "" })} 
+                    className="w-4 h-4" 
+                  />
+                  <Label htmlFor="assign_self" className="cursor-pointer">Assign to myself</Label>
+                </div>
+                {!form.assign_to_self && (
+                  <Select value={form.assigned_to} onValueChange={(v) => setForm({ ...form, assigned_to: v })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select staff (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {staffList.map(s => <SelectItem key={s.id} value={s.id}>{s.name} - {s.role}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                )}
+                {form.assign_to_self && ownerProfile && (
+                  <div className="text-sm text-gray-600 mt-2">
+                    Assigned to: {ownerProfile.name || ownerProfile.email || "You"}
+                  </div>
+                )}
+                {form.assign_to_self && !ownerProfile && (
+                  <div className="text-sm text-yellow-600 mt-2">
+                    Please set up your profile in settings
+                  </div>
+                )}
+              </div>
               <Button type="submit" className="w-full">{editId ? "Update" : "Create"} Task</Button>
             </form>
           </DialogContent>
@@ -184,6 +270,7 @@ export default function Tasks() {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Assigned To</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Priority</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
@@ -195,6 +282,15 @@ export default function Tasks() {
             {tasks.map((task) => (
               <tr key={task.id}>
                 <td className="px-4 py-3 font-medium">{task.title}</td>
+                <td className="px-4 py-3">
+                  {task.assigned_to_self ? (
+                    <span className="text-blue-600">Myself</span>
+                  ) : task.staff_name ? (
+                    <span>{task.staff_name}</span>
+                  ) : (
+                    <span className="text-gray-400">Unassigned</span>
+                  )}
+                </td>
                 <td className="px-4 py-3">{task.description || "N/A"}</td>
                 <td className="px-4 py-3">
                   <span className={`px-2 py-1 rounded text-xs ${

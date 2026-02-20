@@ -1,7 +1,8 @@
-import { ArrowLeft, Plus, Eye, Download, Mail, Trash2, X, Edit } from "lucide-react";
+import { ArrowLeft, Plus, Eye, Download, Mail, Trash2, X, Edit, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { recordInvoicePayment } from "@/lib/business-integration";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -391,6 +392,16 @@ const InvoiceGenerator = () => {
     }
   };
 
+  const markAsPaid = async (invoice: any) => {
+    try {
+      await recordInvoicePayment(user?.id!, invoice.id, parseFloat(invoice.amount));
+      toast({ title: "Success", description: "Invoice marked as paid and recorded in cash book" });
+      loadInvoices();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
   const { subtotal, taxAmount, deliveryFee, total } = calculateTotals();
 
   return (
@@ -558,19 +569,21 @@ const InvoiceGenerator = () => {
                   <td className="px-4 py-3 text-sm">{inv.customers?.name || "N/A"}</td>
                   <td className="px-4 py-3 text-sm font-semibold">{inv.currency || 'USD'} {parseFloat(inv.amount).toFixed(2)}</td>
                   <td className="px-4 py-3 text-sm">
-                    <Select value={inv.status} onValueChange={(v) => updateStatus(inv.id, v)}>
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="due">Due</SelectItem>
-                        <SelectItem value="overdue">Overdue</SelectItem>
-                        <SelectItem value="paid">Paid</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      inv.payment_status === 'paid' ? 'bg-green-100 text-green-800' : 
+                      inv.payment_status === 'partial' ? 'bg-yellow-100 text-yellow-800' : 
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {inv.payment_status || 'unpaid'}
+                    </span>
                   </td>
                   <td className="px-4 py-3 text-sm">{inv.due_date ? new Date(inv.due_date).toLocaleDateString() : '-'}</td>
                   <td className="px-4 py-3 text-sm text-right flex gap-2 justify-end">
+                    {inv.payment_status !== 'paid' && (
+                      <button onClick={() => markAsPaid(inv)} className="text-green-400 hover:text-green-300" title="Mark as Paid">
+                        <CheckCircle className="w-4 h-4" />
+                      </button>
+                    )}
                     <button onClick={() => handleEdit(inv)} className="text-orange-400 hover:text-orange-300" title="Edit">
                       <Edit className="w-4 h-4" />
                     </button>

@@ -1,5 +1,6 @@
 import { Share2, Calendar, TrendingUp, Users, ShoppingCart, Plus, ArrowRight } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 const tabs = ["Overview", "Scheduler", "Growth Services", "Analytics"] as const;
 
@@ -111,30 +112,38 @@ const SocialMediaPage = () => {
         {/* Growth Services */}
         {activeTab === "Growth Services" && (
           <div className="space-y-6">
-            <p className="text-sm text-muted-foreground">Purchase followers, likes, views, and more across all major platforms.</p>
-            {growthServices.map((platform) => (
-              <div key={platform.platform} className="glass-card rounded-lg p-5">
-                <h3 className="text-foreground font-semibold mb-4">{platform.platform}</h3>
-                {platform.services.map((svc) => (
-                  <div key={svc.name} className="mb-4 last:mb-0">
-                    <p className="text-sm text-muted-foreground mb-2">{svc.name}</p>
-                    <div className="grid grid-cols-3 gap-3">
-                      {svc.options.map((opt) => (
-                        <button
-                          key={opt.qty}
-                          className="border border-border rounded-lg p-3 text-center hover:border-primary/50 hover:bg-primary/5 transition-colors group"
-                        >
-                          <div className="text-sm font-bold text-foreground">{opt.qty}</div>
-                          <div className="text-xs text-muted-foreground mb-2">{svc.name.toLowerCase()}</div>
-                          <div className="text-sm font-semibold text-primary">{opt.price}</div>
-                          <span className="text-xs text-muted-foreground group-hover:text-primary transition-colors">Order →</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+            <div className="glass-card rounded-lg p-12 text-center">
+              <ShoppingCart className="w-16 h-16 text-primary mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-foreground mb-2">Professional Growth Services</h3>
+              <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
+                Access 337+ real services for Instagram, TikTok, Facebook, YouTube, LinkedIn, and more. 
+                Real-time pricing, instant delivery, and profit tracking.
+              </p>
+              <Link to="/social/growth">
+                <button className="bg-primary text-primary-foreground px-8 py-4 rounded-lg text-base font-semibold hover:bg-primary/90 transition-colors flex items-center gap-3 mx-auto">
+                  <ShoppingCart className="w-5 h-5" /> Browse All Services
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+              </Link>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 max-w-3xl mx-auto">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-primary">337+</div>
+                  <div className="text-xs text-muted-foreground">Services Available</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-primary">15+</div>
+                  <div className="text-xs text-muted-foreground">Platforms</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-primary">60%</div>
+                  <div className="text-xs text-muted-foreground">Your Profit</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-primary">Instant</div>
+                  <div className="text-xs text-muted-foreground">Delivery</div>
+                </div>
               </div>
-            ))}
+            </div>
           </div>
         )}
 

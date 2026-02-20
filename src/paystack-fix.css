@@ -1,0 +1,51 @@
+/* Fix Paystack modal z-index and pointer events */
+.paystack-checkout-iframe,
+.paystack-container,
+#paystackEmbedContainer {
+  z-index: 2147483647 !important;
+  pointer-events: auto !important;
+  position: fixed !important;
+}
+
+.paystack-overlay,
+.paystack-backdrop {
+  z-index: 2147483646 !important;
+  pointer-events: auto !important;
+  position: fixed !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Ensure all Paystack elements are interactive */
+iframe[src*="paystack"],
+iframe[src*="checkout.paystack.com"] {
+  z-index: 2147483647 !important;
+  pointer-events: auto !important;
+  position: fixed !important;
+}
+
+/* Force hide ALL overlays when Paystack is open */
+body.paystack-open [data-radix-dialog-overlay],
+body.paystack-open [data-radix-portal],
+body.paystack-open .dialog-overlay,
+body.paystack-open [role="dialog"] {
+  display: none !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  z-index: -1 !important;
+}
+
+/* Ensure Paystack elements are always on top */
+body.paystack-open {
+  overflow: hidden;
+}
+
+body.paystack-open * {
+  pointer-events: none !important;
+}
+
+body.paystack-open .paystack-checkout-iframe,
+body.paystack-open .paystack-container,
+body.paystack-open .paystack-overlay,
+body.paystack-open iframe[src*="paystack"] {
+  pointer-events: auto !important;
+}

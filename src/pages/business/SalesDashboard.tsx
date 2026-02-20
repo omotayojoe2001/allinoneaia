@@ -3,9 +3,11 @@ import { ArrowLeft, TrendingUp, DollarSign, ShoppingCart, Users, Package, Calend
 import { Link } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 const SalesDashboard = () => {
   const { user } = useAuth();
+  const { formatAmount } = useCurrency();
   const [stats, setStats] = useState({
     totalRevenue: 0,
     totalExpense: 0,
@@ -23,7 +25,7 @@ const SalesDashboard = () => {
   const fetchAllStats = async () => {
     const [cashbook, invoices, customers, stock, appointments, tasks] = await Promise.all([
       supabase.from("cashbook_transactions").select("*").eq("user_id", user?.id),
-      supabase.from("invoices").select("*").eq("user_id", user?.id).eq("status", "paid"),
+      supabase.from("invoices").select("*").eq("user_id", user?.id),
       supabase.from("customers").select("*").eq("user_id", user?.id),
       supabase.from("stock").select("*").eq("user_id", user?.id),
       supabase.from("appointments").select("*").eq("user_id", user?.id).eq("status", "scheduled"),
@@ -46,9 +48,9 @@ const SalesDashboard = () => {
   };
 
   const statCards = [
-    { label: "Total Revenue", value: `$${stats.totalRevenue.toFixed(2)}`, icon: DollarSign, color: "text-green-500" },
-    { label: "Total Expense", value: `$${stats.totalExpense.toFixed(2)}`, icon: TrendingUp, color: "text-red-500" },
-    { label: "Net Balance", value: `$${(stats.totalRevenue - stats.totalExpense).toFixed(2)}`, icon: ShoppingCart, color: "text-blue-500" },
+    { label: "Total Revenue", value: formatAmount(stats.totalRevenue), icon: DollarSign, color: "text-green-500" },
+    { label: "Total Expense", value: formatAmount(stats.totalExpense), icon: TrendingUp, color: "text-red-500" },
+    { label: "Net Balance", value: formatAmount(stats.totalRevenue - stats.totalExpense), icon: ShoppingCart, color: "text-blue-500" },
     { label: "Customers", value: stats.totalCustomers, icon: Users, color: "text-purple-500" },
     { label: "Invoices", value: stats.totalInvoices, icon: ShoppingCart, color: "text-orange-500" },
     { label: "Stock Items", value: stats.totalStock, icon: Package, color: "text-cyan-500" },

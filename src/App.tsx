@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import AppSidebar from "@/components/AppSidebar";
 import LandingPage from "@/pages/LandingPage";
 import SignupPage from "@/pages/SignupPage";
@@ -39,6 +40,7 @@ import Appointments from "@/pages/business/Appointments";
 import Tasks from "@/pages/business/Tasks";
 import StaffManagement from "@/pages/business/StaffManagement";
 import SpreadsheetAI from "@/pages/business/SpreadsheetAI";
+import GrowthServices from "@/pages/social/GrowthServices";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -54,7 +56,8 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
       <AuthProvider>
-        <TooltipProvider>
+        <CurrencyProvider>
+          <TooltipProvider>
           <Toaster />
           <Sonner />
           <BrowserRouter>
@@ -75,6 +78,7 @@ const App = () => (
               <Route path="/customer" element={<AppLayout><CustomerServicePage /></AppLayout>} />
               <Route path="/content" element={<AppLayout><ContentStudioPage /></AppLayout>} />
               <Route path="/social" element={<AppLayout><SocialMediaPage /></AppLayout>} />
+              <Route path="/social/growth" element={<AppLayout><GrowthServices /></AppLayout>} />
               <Route path="/business" element={<AppLayout><BusinessToolsPage /></AppLayout>} />
               <Route path="/business/sales" element={<AppLayout><SalesDashboard /></AppLayout>} />
               <Route path="/business/cashbook" element={<AppLayout><Cashbook /></AppLayout>} />
@@ -87,7 +91,7 @@ const App = () => (
               <Route path="/business/appointments" element={<AppLayout><Appointments /></AppLayout>} />
               <Route path="/business/tasks" element={<AppLayout><Tasks /></AppLayout>} />
               <Route path="/business/staff" element={<AppLayout><StaffManagement /></AppLayout>} />
-              <Route path="/business/spreadsheet" element={<AppLayout><SpreadsheetAI /></AppLayout>} />
+              <Route path="/business/reports" element={<AppLayout><SpreadsheetAI /></AppLayout>} />
               <Route path="/reminders" element={<AppLayout><RemindersPage /></AppLayout>} />
               <Route path="/life" element={<AppLayout><LifeAutomationPage /></AppLayout>} />
               <Route path="/billing" element={<AppLayout><BillingPage /></AppLayout>} />
@@ -96,9 +100,10 @@ const App = () => (
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
-      </AuthProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
+      </CurrencyProvider>
+    </AuthProvider>
+  </ThemeProvider>
+</QueryClientProvider>
 );
 
 export default App;

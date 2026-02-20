@@ -3,9 +3,11 @@ import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 const Cashbook = () => {
   const { user } = useAuth();
+  const { formatAmount } = useCurrency();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [balance, setBalance] = useState({ income: 0, expense: 0 });
@@ -57,18 +59,18 @@ const Cashbook = () => {
               <TrendingUp className="w-5 h-5 text-green-500" />
               <p className="text-sm text-muted-foreground">Total Income</p>
             </div>
-            <p className="text-2xl font-bold text-green-500">${balance.income.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-green-500">{formatAmount(balance.income)}</p>
           </div>
           <div className="glass-card rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <TrendingDown className="w-5 h-5 text-red-500" />
               <p className="text-sm text-muted-foreground">Total Expense</p>
             </div>
-            <p className="text-2xl font-bold text-red-500">${balance.expense.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-red-500">{formatAmount(balance.expense)}</p>
           </div>
           <div className="glass-card rounded-lg p-4">
             <p className="text-sm text-muted-foreground mb-2">Net Balance</p>
-            <p className="text-2xl font-bold">${(balance.income - balance.expense).toFixed(2)}</p>
+            <p className="text-2xl font-bold">{formatAmount(balance.income - balance.expense)}</p>
           </div>
         </div>
 
@@ -95,7 +97,7 @@ const Cashbook = () => {
                   <td className="px-4 py-3 text-sm">{t.category}</td>
                   <td className="px-4 py-3 text-sm">{t.description}</td>
                   <td className={`px-4 py-3 text-sm text-right font-semibold ${t.type === 'income' ? 'text-green-500' : 'text-red-500'}`}>
-                    {t.type === 'income' ? '+' : '-'}${parseFloat(t.amount).toFixed(2)}
+                    {t.type === 'income' ? '+' : '-'}{formatAmount(parseFloat(t.amount))}
                   </td>
                 </tr>
               ))}

@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { recordSalaryPayment } from "@/lib/business-integration";
+import { syncStaffToList } from "@/lib/staff-sync";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,7 +16,10 @@ import { generateSalaryReceipt } from "@/lib/salary-receipt-pdf";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function StaffManagement() {
+  const { formatAmount } = useCurrency();
+  const [activeTab, setActiveTab] = useState<"staff" | "list">("staff");
   const [staff, setStaff] = useState<any[]>([]);
+  const [staffList, setStaffList] = useState<any[]>([]);
   const [expandedStaff, setExpandedStaff] = useState<string | null>(null);
   const [attendance, setAttendance] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
@@ -44,16 +50,32 @@ export default function StaffManagement() {
 
   useEffect(() => {
     fetchStaff();
+    fetchStaffList();
     fetchAttendance();
     fetchPayments();
     loadProfile();
+    syncStaff();
   }, []);
+
+  const syncStaff = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await syncStaffToList(user.id);
+    fetchStaffList();
+  };
 
   const fetchStaff = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     const { data } = await supabase.from("staff").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
     setStaff(data || []);
+  };
+
+  const fetchStaffList = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase.from("staff_list").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
+    setStaffList(data || []);
   };
 
   const fetchAttendance = async () => {
@@ -116,6 +138,7 @@ export default function StaffManagement() {
         setOpen(false);
         setForm({ name: "", email: "", phone: "", position: "", salary: "", payment_date: "", payment_cycle: "monthly", include_weekends: false, late_deduction_amount: "", auto_deduct_late: false });
         fetchStaff();
+        syncStaff();
       }
     }
   };
@@ -188,15 +211,28 @@ export default function StaffManagement() {
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Success", description: "Payment recorded" });
-      
+      // Auto-record in cash book if paid
       if (paymentForm.status === "paid") {
-        const selectedStaff = staff.find(s => s.id === paymentForm.staff_id);
-        if (selectedStaff) {
+        try {
+          const selectedStaff = staff.find(s => s.id === paymentForm.staff_id);
+          await recordSalaryPayment(
+            user.id, 
+            newPayment.id, 
+            selectedStaff?.name || "Staff", 
+            parseFloat(paymentForm.amount),
+            paymentForm.paid_date ? new Date(paymentForm.paid_date) : new Date()
+          );
+          toast({ title: "Success", description: "Payment recorded and added to cash book" });
+          
           const paymentCalc = calculatePaymentDue(selectedStaff);
           const stats = getStaffStats(selectedStaff.id);
           await generateSalaryReceipt(selectedStaff, newPayment, profile, paymentCalc, stats, toast);
+        } catch (err) {
+          console.error("Failed to record in cash book:", err);
+          toast({ title: "Success", description: "Payment recorded (cash book entry failed)" });
         }
+      } else {
+        toast({ title: "Success", description: "Payment recorded" });
       }
       
       setPaymentOpen(false);
@@ -319,6 +355,38 @@ export default function StaffManagement() {
       </Link>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Staff Management</h1>
+        <div className="flex gap-2">
+          <Button variant={activeTab === "staff" ? "default" : "outline"} onClick={() => setActiveTab("staff")}>Staff</Button>
+          <Button variant={activeTab === "list" ? "default" : "outline"} onClick={() => setActiveTab("list")}>Staff List</Button>
+        </div>
+      </div>
+
+      {activeTab === "list" && (
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {staffList.map((member) => (
+                <tr key={member.id}>
+                  <td className="px-4 py-3 font-medium">{member.name}</td>
+                  <td className="px-4 py-3">{member.email || "N/A"}</td>
+                  <td className="px-4 py-3">{member.phone || "N/A"}</td>
+                  <td className="px-4 py-3">{member.role}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {activeTab === "staff" && (
         <div className="flex gap-2">
           <Dialog open={attendanceViewOpen} onOpenChange={setAttendanceViewOpen}>
             <DialogTrigger asChild>
@@ -462,7 +530,7 @@ export default function StaffManagement() {
                         return (
                           <tr key={payment.id}>
                             <td className="px-4 py-2 text-sm">{staffMember?.name || "N/A"}</td>
-                            <td className="px-4 py-2 text-sm font-semibold">{profile?.default_currency || "$"}{parseFloat(payment.amount).toFixed(2)}</td>
+                            <td className="px-4 py-2 text-sm font-semibold">{formatAmount(0).replace("0.00", "")}{parseFloat(payment.amount).toFixed(2)}</td>
                             <td className="px-4 py-2 text-sm">{payment.month}</td>
                             <td className="px-4 py-2 text-sm">
                               <span className={`px-2 py-1 rounded text-xs ${payment.status === "paid" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}>
@@ -551,7 +619,7 @@ export default function StaffManagement() {
                       <SelectValue placeholder="Select staff" />
                     </SelectTrigger>
                     <SelectContent>
-                      {staff.filter(s => s.name.toLowerCase().includes(staffSearch.toLowerCase())).map(s => <SelectItem key={s.id} value={s.id}>{s.name} - {profile?.default_currency || "$"}{s.salary || 0}</SelectItem>)}
+                      {staff.filter(s => s.name.toLowerCase().includes(staffSearch.toLowerCase())).map(s => <SelectItem key={s.id} value={s.id}>{s.name} - {formatAmount(0).replace("0.00", "")}{s.salary || 0}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -649,8 +717,9 @@ export default function StaffManagement() {
             </DialogContent>
           </Dialog>
         </div>
-      </div>
+      )}
 
+      {activeTab === "staff" && (
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <table className="w-full">
           <thead className="bg-gray-50">
@@ -707,10 +776,10 @@ export default function StaffManagement() {
                       </button>
                     </td>
                     <td className="px-4 py-3">{member.position || "N/A"}</td>
-                    <td className="px-4 py-3 font-semibold">{profile?.default_currency || "$"}{member.salary ? parseFloat(member.salary).toFixed(2) : "0.00"}</td>
+                    <td className="px-4 py-3 font-semibold">{formatAmount(0).replace("0.00", "")}{member.salary ? parseFloat(member.salary).toFixed(2) : "0.00"}</td>
                     <td className="px-4 py-3 text-green-600">{stats.daysPresent}</td>
-                    <td className="px-4 py-3 font-semibold text-blue-600">{profile?.default_currency || "$"}{payment.paymentDue.toFixed(2)}</td>
-                    <td className="px-4 py-3 text-yellow-600">{profile?.default_currency || "$"}{stats.totalPending.toFixed(2)}</td>
+                    <td className="px-4 py-3 font-semibold text-blue-600">{formatAmount(0).replace("0.00", "")}{payment.paymentDue.toFixed(2)}</td>
+                    <td className="px-4 py-3 text-yellow-600">{formatAmount(0).replace("0.00", "")}{stats.totalPending.toFixed(2)}</td>
                     <td className="px-4 py-3 flex gap-2">
                       <Button variant="ghost" size="sm" onClick={() => handleEdit(member)}>
                         <Edit className="w-4 h-4 text-blue-500" />
@@ -731,13 +800,13 @@ export default function StaffManagement() {
                             <p className="text-sm">Next Payment: {member.payment_date ? new Date(member.payment_date).toLocaleDateString() : "N/A"}</p>
                             <h3 className="font-semibold mt-4 mb-2">Payment Calculation</h3>
                             <p className="text-sm">Cycle: {member.payment_cycle || "monthly"} | Weekends: {member.include_weekends ? "Included" : "Excluded"}</p>
-                            <p className="text-sm">Daily Rate: {profile?.default_currency || "$"}{payment.dailyRate.toFixed(2)} | Working Days: {payment.workingDays}</p>
-                            <p className="text-sm">Earned: {profile?.default_currency || "$"}{payment.earnedAmount.toFixed(2)} | Deductions: {profile?.default_currency || "$"}{payment.deductions.toFixed(2)}</p>
-                            <p className="text-sm font-semibold text-blue-600">Payment Due: {profile?.default_currency || "$"}{payment.paymentDue.toFixed(2)}</p>
+                            <p className="text-sm">Daily Rate: {formatAmount(0).replace("0.00", "")}{payment.dailyRate.toFixed(2)} | Working Days: {payment.workingDays}</p>
+                            <p className="text-sm">Earned: {formatAmount(0).replace("0.00", "")}{payment.earnedAmount.toFixed(2)} | Deductions: {formatAmount(0).replace("0.00", "")}{payment.deductions.toFixed(2)}</p>
+                            <p className="text-sm font-semibold text-blue-600">Payment Due: {formatAmount(0).replace("0.00", "")}{payment.paymentDue.toFixed(2)}</p>
                             <h3 className="font-semibold mt-4 mb-2">Attendance Summary</h3>
                             <p className="text-sm">Present: {stats.daysPresent} | Absent: {stats.daysAbsent} | Late: {stats.daysLate}</p>
                             <h3 className="font-semibold mt-4 mb-2">Salary Summary</h3>
-                            <p className="text-sm">Pending: {profile?.default_currency || "$"}{stats.totalPending.toFixed(2)} | Paid: {profile?.default_currency || "$"}{stats.totalPaid.toFixed(2)}</p>
+                            <p className="text-sm">Pending: {formatAmount(0).replace("0.00", "")}{stats.totalPending.toFixed(2)} | Paid: {formatAmount(0).replace("0.00", "")}{stats.totalPaid.toFixed(2)}</p>
                           </div>
                           <div>
                             <h3 className="font-semibold mb-2">Recent Attendance</h3>
@@ -760,7 +829,7 @@ export default function StaffManagement() {
                                 <div key={p.id} className="text-sm flex justify-between">
                                   <span>{p.month}</span>
                                   <span className={`px-2 py-0.5 rounded text-xs ${p.status === "paid" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}>
-                                    {profile?.default_currency || "$"}{parseFloat(p.amount).toFixed(2)} - {p.status}
+                                    {formatAmount(0).replace("0.00", "")}{parseFloat(p.amount).toFixed(2)} - {p.status}
                                   </span>
                                 </div>
                               ))}
@@ -776,6 +845,7 @@ export default function StaffManagement() {
           </tbody>
         </table>
       </div>
+      )}
       </div>
     </div>
   );

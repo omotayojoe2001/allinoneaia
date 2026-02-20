@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 const SettingsPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [userInfo, setUserInfo] = useState({ first_name: "", last_name: "", email: "" });
   const [form, setForm] = useState({
     business_name: "",
     business_address: "",
@@ -63,6 +64,11 @@ const SettingsPage = () => {
   const loadProfile = async () => {
     const { data } = await supabase.from("profiles").select("*").eq("id", user?.id).single();
     if (data) {
+      setUserInfo({
+        first_name: data.first_name || "",
+        last_name: data.last_name || "",
+        email: user?.email || ""
+      });
       setForm({
         business_name: data.business_name || "",
         business_address: data.business_address || "",
@@ -147,6 +153,26 @@ const SettingsPage = () => {
             </div>
           )}
           <div>
+            <h2 className="text-lg font-semibold mb-4">Account Information</h2>
+            <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>First Name</Label>
+                  <Input value={userInfo.first_name} disabled className="bg-gray-100" />
+                </div>
+                <div>
+                  <Label>Last Name</Label>
+                  <Input value={userInfo.last_name} disabled className="bg-gray-100" />
+                </div>
+              </div>
+              <div>
+                <Label>Email</Label>
+                <Input value={userInfo.email} disabled className="bg-gray-100" />
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t pt-6">
             <h2 className="text-lg font-semibold mb-4">Business Profile</h2>
             <div className="space-y-4">
               <div>

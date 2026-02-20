@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { syncToGoogleCalendar } from "@/lib/calendar-integration";
+import AppointmentSettings from "@/components/AppointmentSettings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -64,11 +66,28 @@ export default function Appointments() {
         fetchAppointments();
       }
     } else {
-      const { error } = await supabase.from("appointments").insert(payload);
+      const { error, data: newAppointment } = await supabase.from("appointments").insert(payload).select().single();
       if (error) {
         toast({ title: "Error", description: error.message, variant: "destructive" });
       } else {
-        toast({ title: "Success", description: "Appointment created" });
+        // Sync to Google Calendar
+        const startDateTime = new Date(`${form.date}T${form.time}`);
+        const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000); // 1 hour default
+        await syncToGoogleCalendar(
+          "appointment",
+          newAppointment.id,
+          form.title,
+          form.description,
+          startDateTime,
+          endDateTime
+        );
+        
+        // Update with calendar sync status
+        await supabase.from("appointments").update({
+          google_calendar_synced: true
+        }).eq("id", newAppointment.id);
+        
+        toast({ title: "Success", description: "Appointment created and synced to Google Calendar" });
         setOpen(false);
         setForm({ customer_id: "", title: "", description: "", date: "", time: "", status: "scheduled" });
         fetchAppointments();
@@ -107,7 +126,9 @@ export default function Appointments() {
       </Link>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Appointments</h1>
-        <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setEditId(null); setForm({ customer_id: "", title: "", description: "", date: "", time: "", status: "scheduled" }); } }}>
+        <div className="flex gap-2">
+          <AppointmentSettings />
+          <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setEditId(null); setForm({ customer_id: "", title: "", description: "", date: "", time: "", status: "scheduled" }); } }}>
           <DialogTrigger asChild>
             <Button><Plus className="w-4 h-4 mr-2" />New Appointment</Button>
           </DialogTrigger>
@@ -160,6 +181,7 @@ export default function Appointments() {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">

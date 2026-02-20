@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { recordStockSale } from "@/lib/business-integration";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,17 +8,21 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, ArrowLeft, Package, TrendingUp, AlertTriangle, ShoppingCart, Download, Search, Filter, HelpCircle, Calendar } from "lucide-react";
+import { Plus, ArrowLeft, Package, TrendingUp, AlertTriangle, ShoppingCart, Download, Search, Filter, HelpCircle, Calendar, Folder } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function StockManagement() {
-  const [activeTab, setActiveTab] = useState<"dashboard" | "products" | "sales" | "reports">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "groups" | "products" | "sales" | "reports">("dashboard");
   const [products, setProducts] = useState<any[]>([]);
+  const [groups, setGroups] = useState<any[]>([]);
   const [sales, setSales] = useState<any[]>([]);
   const [movements, setMovements] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(null);
   const [productOpen, setProductOpen] = useState(false);
+  const [groupOpen, setGroupOpen] = useState(false);
   const [saleOpen, setSaleOpen] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [supplierFilter, setSupplierFilter] = useState("all");
@@ -28,8 +33,9 @@ export default function StockManagement() {
   const [reportFilter, setReportFilter] = useState({ type: "all", customer: "", startDate: "", endDate: "" });
   const [form, setForm] = useState({
     name: "", sku: "", barcode: "", category: "", description: "", unit_price: "", cost_price: "",
-    supplier: "", quantity: "", reorder_level: "10", status: "active", location: ""
+    supplier: "", quantity: "", reorder_level: "10", status: "active", location: "", group_id: ""
   });
+  const [groupForm, setGroupForm] = useState({ name: "", description: "", color: "#3B82F6" });
   const [saleItems, setSaleItems] = useState([{ product_id: "", quantity: 1, price: 0 }]);
   const [saleForm, setSaleForm] = useState({ customer_name: "", payment_method: "cash" });
   const { toast } = useToast();
@@ -43,14 +49,16 @@ export default function StockManagement() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     
-    const [productsRes, salesRes, movementsRes, profileRes] = await Promise.all([
+    const [productsRes, groupsRes, salesRes, movementsRes, profileRes] = await Promise.all([
       supabase.from("stock").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+      supabase.from("product_groups").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
       supabase.from("stock_sales").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
       supabase.from("stock_movements").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
       supabase.from("profiles").select("*").eq("id", user.id).single()
     ]);
     
     setProducts(productsRes.data || []);
+    setGroups(groupsRes.data || []);
     setSales(salesRes.data || []);
     setMovements(movementsRes.data || []);
     setProfile(profileRes.data);
@@ -74,7 +82,8 @@ export default function StockManagement() {
       quantity: parseInt(form.quantity),
       reorder_level: parseInt(form.reorder_level),
       status: form.status,
-      location: form.location || null
+      location: form.location || null,
+      group_id: form.group_id || null
     });
 
     if (error) {
@@ -82,7 +91,29 @@ export default function StockManagement() {
     } else {
       toast({ title: "Success", description: "Product added" });
       setProductOpen(false);
-      setForm({ name: "", sku: "", barcode: "", category: "", description: "", unit_price: "", cost_price: "", supplier: "", quantity: "", reorder_level: "10", status: "active", location: "" });
+      setForm({ name: "", sku: "", barcode: "", category: "", description: "", unit_price: "", cost_price: "", supplier: "", quantity: "", reorder_level: "10", status: "active", location: "", group_id: "" });
+      fetchData();
+    }
+  };
+
+  const handleGroupSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { error } = await supabase.from("product_groups").insert({
+      user_id: user.id,
+      name: groupForm.name,
+      description: groupForm.description || null,
+      color: groupForm.color
+    });
+
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Success", description: "Group created" });
+      setGroupOpen(false);
+      setGroupForm({ name: "", description: "", color: "#3B82F6" });
       fetchData();
     }
   };
@@ -96,7 +127,13 @@ export default function StockManagement() {
     const total = subtotal;
     const saleNumber = `SALE-${Date.now()}`;
 
-    const { error } = await supabase.from("stock_sales").insert({
+    // Calculate profit
+    const profit = saleItems.reduce((sum, item) => {
+      const product = products.find(p => p.id === item.product_id);
+      return sum + ((item.price - (product?.cost_price || 0)) * item.quantity);
+    }, 0);
+
+    const { data: saleData, error } = await supabase.from("stock_sales").insert({
       user_id: user.id,
       sale_number: saleNumber,
       customer_name: saleForm.customer_name || null,
@@ -105,13 +142,21 @@ export default function StockManagement() {
       total,
       payment_method: saleForm.payment_method,
       status: "completed"
-    });
+    }).select().single();
 
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
       return;
     }
 
+    // Auto-record in cash book
+    try {
+      await recordStockSale(user.id, saleData.id, total, profit, new Date());
+    } catch (err) {
+      console.error("Failed to record in cash book:", err);
+    }
+
+    // Update stock and movements
     for (const item of saleItems) {
       const product = products.find(p => p.id === item.product_id);
       if (product) {
@@ -127,7 +172,7 @@ export default function StockManagement() {
       }
     }
 
-    toast({ title: "Success", description: "Sale recorded" });
+    toast({ title: "Success", description: "Sale recorded and added to cash book" });
     setSaleOpen(false);
     setSaleItems([{ product_id: "", quantity: 1, price: 0 }]);
     setSaleForm({ customer_name: "", payment_method: "cash" });
@@ -139,7 +184,8 @@ export default function StockManagement() {
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.sku.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === "all" || p.category === categoryFilter;
     const matchesSupplier = supplierFilter === "all" || p.supplier === supplierFilter;
-    return matchesSearch && matchesCategory && matchesSupplier;
+    const matchesGroup = selectedGroup === "all" || p.group_id === selectedGroup;
+    return matchesSearch && matchesCategory && matchesSupplier && matchesGroup;
   });
 
   const getFilteredSalesByDate = () => {
@@ -195,6 +241,7 @@ export default function StockManagement() {
   const totalReportPages = Math.ceil(filteredReportSales.length / itemsPerPage);
 
   return (
+    <TooltipProvider>
     <div className="flex-1 overflow-y-auto px-6 py-8">
       <div className="max-w-7xl mx-auto">
         <Link to="/business" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
@@ -205,6 +252,7 @@ export default function StockManagement() {
           <h1 className="text-3xl font-bold">Stock Management</h1>
           <div className="flex gap-2">
             <Button variant={activeTab === "dashboard" ? "default" : "outline"} onClick={() => setActiveTab("dashboard")}>Dashboard</Button>
+            <Button variant={activeTab === "groups" ? "default" : "outline"} onClick={() => setActiveTab("groups")}>Groups</Button>
             <Button variant={activeTab === "products" ? "default" : "outline"} onClick={() => setActiveTab("products")}>Products</Button>
             <Button variant={activeTab === "sales" ? "default" : "outline"} onClick={() => setActiveTab("sales")}>Sales</Button>
             <Button variant={activeTab === "reports" ? "default" : "outline"} onClick={() => setActiveTab("reports")}>Reports</Button>
@@ -331,8 +379,65 @@ export default function StockManagement() {
           </div>
         )}
 
+        {activeTab === "groups" && (
+          <div className="space-y-4">
+            <Dialog open={groupOpen} onOpenChange={setGroupOpen}>
+              <DialogTrigger asChild>
+                <Button><Plus className="w-4 h-4 mr-2" />New Group</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create Product Group</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleGroupSubmit} className="space-y-4">
+                  <div>
+                    <Label>Group Name *</Label>
+                    <Input placeholder="e.g. Baby Products" value={groupForm.name} onChange={(e) => setGroupForm({ ...groupForm, name: e.target.value })} required />
+                  </div>
+                  <div>
+                    <Label>Description</Label>
+                    <Textarea placeholder="Optional description" value={groupForm.description} onChange={(e) => setGroupForm({ ...groupForm, description: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label>Color</Label>
+                    <Input type="color" value={groupForm.color} onChange={(e) => setGroupForm({ ...groupForm, color: e.target.value })} />
+                  </div>
+                  <Button type="submit" className="w-full">Create Group</Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+            <div className="grid grid-cols-4 gap-4">
+              {groups.map(g => {
+                const groupProducts = products.filter(p => p.group_id === g.id);
+                const groupValue = groupProducts.reduce((sum, p) => sum + (p.quantity * p.unit_price), 0);
+                return (
+                  <div key={g.id} className="bg-white border rounded-lg p-4 cursor-pointer hover:shadow-md transition" style={{ borderLeftWidth: '4px', borderLeftColor: g.color }} onClick={() => { setSelectedGroup(g.id); setActiveTab("products"); }}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Folder className="w-5 h-5" style={{ color: g.color }} />
+                      <p className="font-semibold">{g.name}</p>
+                    </div>
+                    {g.description && <p className="text-xs text-gray-600 mb-2">{g.description}</p>}
+                    <div className="flex justify-between items-center mt-3">
+                      <span className="text-xs text-gray-600">{groupProducts.length} products</span>
+                      <span className="text-sm font-bold" style={{ color: g.color }}>{currency}{groupValue.toFixed(2)}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {activeTab === "products" && (
           <div className="space-y-4">
+            <div className="flex gap-2 mb-4">
+              {groups.map(g => (
+                <Button key={g.id} variant={selectedGroup === g.id ? "default" : "outline"} size="sm" onClick={() => setSelectedGroup(g.id)} style={selectedGroup === g.id ? { backgroundColor: g.color, borderColor: g.color } : {}}>
+                  {g.name}
+                </Button>
+              ))}
+              <Button variant={selectedGroup === "all" ? "default" : "outline"} size="sm" onClick={() => setSelectedGroup("all")}>All Products</Button>
+            </div>
             <div className="flex gap-2">
               <div className="flex-1 relative">
                 <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
@@ -369,21 +474,42 @@ export default function StockManagement() {
                       <div>
                         <Label className="flex items-center gap-1">
                           Product Name *
-                          <span className="text-xs text-gray-500" title="The name of your product as it will appear in your inventory">ℹ️</span>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="w-3 h-3 text-gray-400 cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>The name of your product as it will appear in your inventory</p>
+                            </TooltipContent>
+                          </Tooltip>
                         </Label>
                         <Input placeholder="e.g. Apple iPhone 13" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
                       </div>
                       <div>
                         <Label className="flex items-center gap-1">
                           SKU *
-                          <span className="text-xs text-gray-500" title="Stock Keeping Unit - A unique code to identify this product (e.g. IPH13-BLK-128)">ℹ️</span>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="w-3 h-3 text-gray-400 cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Stock Keeping Unit - A unique code to identify this product (e.g. IPH13-BLK-128)</p>
+                            </TooltipContent>
+                          </Tooltip>
                         </Label>
                         <Input placeholder="e.g. PROD-001" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} required />
                       </div>
                       <div>
                         <Label className="flex items-center gap-1">
                           Barcode
-                          <span className="text-xs text-gray-500" title="Product barcode number for scanning (optional)">ℹ️</span>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="w-3 h-3 text-gray-400 cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Product barcode number for scanning (optional)</p>
+                            </TooltipContent>
+                          </Tooltip>
                         </Label>
                         <Input placeholder="e.g. 123456789012" value={form.barcode} onChange={(e) => setForm({ ...form, barcode: e.target.value })} />
                       </div>
@@ -394,14 +520,28 @@ export default function StockManagement() {
                       <div>
                         <Label className="flex items-center gap-1">
                           Unit Price *
-                          <span className="text-xs text-gray-500" title="The price you sell this product for (selling price to customers)">ℹ️</span>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="w-3 h-3 text-gray-400 cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>The price you sell this product for (selling price to customers)</p>
+                            </TooltipContent>
+                          </Tooltip>
                         </Label>
                         <Input type="number" step="0.01" placeholder="e.g. 50000" value={form.unit_price} onChange={(e) => setForm({ ...form, unit_price: e.target.value })} required />
                       </div>
                       <div>
                         <Label className="flex items-center gap-1">
                           Cost Price *
-                          <span className="text-xs text-gray-500" title="How much you paid to buy/produce this product (your cost)">ℹ️</span>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="w-3 h-3 text-gray-400 cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>How much you paid to buy/produce this product (your cost)</p>
+                            </TooltipContent>
+                          </Tooltip>
                         </Label>
                         <Input type="number" step="0.01" placeholder="e.g. 35000" value={form.cost_price} onChange={(e) => setForm({ ...form, cost_price: e.target.value })} required />
                       </div>
@@ -416,13 +556,32 @@ export default function StockManagement() {
                       <div>
                         <Label className="flex items-center gap-1">
                           Reorder Level
-                          <span className="text-xs text-gray-500" title="Minimum quantity before you get a low stock alert (e.g. if set to 10, you'll be alerted when stock drops to 10 or below)">ℹ️</span>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="w-3 h-3 text-gray-400 cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Minimum quantity before you get a low stock alert (e.g. if set to 10, you'll be alerted when stock drops to 10 or below)</p>
+                            </TooltipContent>
+                          </Tooltip>
                         </Label>
                         <Input type="number" placeholder="e.g. 10" value={form.reorder_level} onChange={(e) => setForm({ ...form, reorder_level: e.target.value })} />
                       </div>
                       <div>
                         <Label>Location</Label>
                         <Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="Warehouse A" />
+                      </div>
+                      <div>
+                        <Label>Product Group</Label>
+                        <Select value={form.group_id} onValueChange={(v) => setForm({ ...form, group_id: v })}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select group (optional)" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">No Group</SelectItem>
+                            {groups.map(g => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                     <div>
@@ -664,5 +823,6 @@ export default function StockManagement() {
         )}
       </div>
     </div>
+    </TooltipProvider>
   );
 }
