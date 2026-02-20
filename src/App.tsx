@@ -42,6 +42,9 @@ import StaffManagement from "@/pages/business/StaffManagement";
 import SpreadsheetAI from "@/pages/business/SpreadsheetAI";
 import GrowthServices from "@/pages/social/GrowthServices";
 import SocialScheduler from "@/pages/social/SocialScheduler";
+import GrammarChecker from "@/pages/content/GrammarChecker";
+import AIWriter from "@/pages/content/AIWriter";
+import VoiceOverAI from "@/pages/content/VoiceOverAI";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -78,6 +81,9 @@ const App = () => (
               <Route path="/automation/whatsapp" element={<AppLayout><WhatsAppAutomation /></AppLayout>} />
               <Route path="/customer" element={<AppLayout><CustomerServicePage /></AppLayout>} />
               <Route path="/content" element={<AppLayout><ContentStudioPage /></AppLayout>} />
+              <Route path="/content/grammar" element={<AppLayout><GrammarChecker /></AppLayout>} />
+              <Route path="/content/writer" element={<AppLayout><AIWriter /></AppLayout>} />
+              <Route path="/content/voiceover" element={<AppLayout><VoiceOverAI /></AppLayout>} />
               <Route path="/social" element={<AppLayout><SocialMediaPage /></AppLayout>} />
               <Route path="/social/growth" element={<AppLayout><GrowthServices /></AppLayout>} />
               <Route path="/social/scheduler" element={<AppLayout><SocialScheduler /></AppLayout>} />

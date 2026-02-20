@@ -1,4 +1,5 @@
 import { Palette, FileText, Image, Video, Youtube, Mic, Plus, ArrowRight, FileEdit, CheckCircle2, Presentation, TrendingUp, Cpu, VideoIcon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const tools = [
   { name: "AI Writer", desc: "Generate blog posts, captions, ad copy, scripts, and more with AI", icon: FileText, count: "8 created today", action: "Start Writing" },
@@ -21,7 +22,21 @@ const recentContent = [
   { title: "Podcast Intro Voiceover", type: "Voiceover", status: "Completed", time: "Yesterday" },
 ];
 
-const ContentStudioPage = () => (
+const ContentStudioPage = () => {
+  const navigate = useNavigate();
+
+  const handleToolClick = (toolName: string) => {
+    const routes: Record<string, string> = {
+      'Grammar Check': '/content/grammar',
+      'AI Writer': '/content/writer',
+      'Voiceover AI': '/content/voiceover',
+    };
+    if (routes[toolName]) {
+      navigate(routes[toolName]);
+    }
+  };
+
+  return (
   <div className="flex-1 overflow-y-auto px-6 py-8">
     <div className="max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-6">
@@ -49,7 +64,10 @@ const ContentStudioPage = () => (
               </div>
               <p className="text-xs text-muted-foreground mb-4 leading-relaxed">{t.desc}</p>
             </div>
-            <button className="w-full py-2 rounded-md text-sm font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors flex items-center justify-center gap-2">
+            <button 
+              onClick={() => handleToolClick(t.name)}
+              className="w-full py-2 rounded-md text-sm font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors flex items-center justify-center gap-2"
+            >
               <Plus className="w-3.5 h-3.5" /> {t.action}
             </button>
           </div>
@@ -73,6 +91,7 @@ const ContentStudioPage = () => (
       </div>
     </div>
   </div>
-);
+  );
+};
 
 export default ContentStudioPage;
