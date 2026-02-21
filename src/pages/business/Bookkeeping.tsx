@@ -3,10 +3,12 @@ import { supabase } from "@/lib/supabase";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 export default function Bookkeeping() {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [filter, setFilter] = useState("all");
+  const { formatAmount } = useCurrency();
 
   useEffect(() => {
     fetchAllTransactions();
@@ -49,19 +51,19 @@ export default function Bookkeeping() {
       <div className="grid grid-cols-4 gap-4 mb-6">
         <div className="bg-green-50 p-4 rounded-lg">
           <p className="text-sm text-gray-600">Total Income</p>
-          <p className="text-2xl font-bold text-green-600">${totalIncome.toFixed(2)}</p>
+          <p className="text-2xl font-bold text-green-600">{formatAmount(totalIncome)}</p>
         </div>
         <div className="bg-red-50 p-4 rounded-lg">
           <p className="text-sm text-gray-600">Total Expense</p>
-          <p className="text-2xl font-bold text-red-600">${totalExpense.toFixed(2)}</p>
+          <p className="text-2xl font-bold text-red-600">{formatAmount(totalExpense)}</p>
         </div>
         <div className="bg-blue-50 p-4 rounded-lg">
           <p className="text-sm text-gray-600">Pending Credits</p>
-          <p className="text-2xl font-bold text-blue-600">${totalCredits.toFixed(2)}</p>
+          <p className="text-2xl font-bold text-blue-600">{formatAmount(totalCredits)}</p>
         </div>
         <div className="bg-purple-50 p-4 rounded-lg">
           <p className="text-sm text-gray-600">Net Balance</p>
-          <p className="text-2xl font-bold text-purple-600">${(totalIncome - totalExpense).toFixed(2)}</p>
+          <p className="text-2xl font-bold text-purple-600">{formatAmount(totalIncome - totalExpense)}</p>
         </div>
       </div>
 
@@ -112,7 +114,7 @@ export default function Bookkeeping() {
                 </td>
                 <td className="px-4 py-3">{transaction.customer || "N/A"}</td>
                 <td className="px-4 py-3">{transaction.description || transaction.category || transaction.invoice_number || "N/A"}</td>
-                <td className="px-4 py-3 font-semibold">${parseFloat(transaction.amount).toFixed(2)}</td>
+                <td className="px-4 py-3 font-semibold">{formatAmount(parseFloat(transaction.amount))}</td>
                 <td className="px-4 py-3">
                   {transaction.status && (
                     <span className={`px-2 py-1 rounded text-xs ${

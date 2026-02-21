@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { CheckCircle2, Copy } from 'lucide-react';
+import { CheckCircle2, Copy, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabase';
 
 const GrammarChecker = () => {
+  const navigate = useNavigate();
   const [text, setText] = useState('');
   const [correctedText, setCorrectedText] = useState('');
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<any[]>([]);
   const { toast } = useToast();
 
   const checkGrammar = async () => {
@@ -17,29 +19,54 @@ const GrammarChecker = () => {
 
     setLoading(true);
     try {
-      const response = await fetch('https://api.languagetool.org/v2/check', {
+      const { data: config, error: configError } = await supabase
+        .from('api_config')
+        .select('api_key')
+        .eq('service', 'groq')
+        .single();
+
+      if (configError || !config?.api_key) {
+        throw new Error('Groq API key not found. Please add it in database.');
+      }
+
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          text,
-          language: 'en-US',
+        headers: {
+          'Authorization': `Bearer ${config.api_key}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a professional grammar checker. Fix all grammar, spelling, punctuation, and style issues. Preserve the original formatting, paragraph breaks, and spacing. Return ONLY the corrected text with proper spacing between paragraphs.'
+            },
+            {
+              role: 'user',
+              content: text
+            }
+          ],
+          temperature: 0.3,
         }),
       });
 
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || 'Groq API error');
+      }
+
       const data = await response.json();
-      setErrors(data.matches || []);
-
-      let corrected = text;
-      data.matches.reverse().forEach((match: any) => {
-        if (match.replacements.length > 0) {
-          const replacement = match.replacements[0].value;
-          corrected = corrected.substring(0, match.offset) + replacement + corrected.substring(match.offset + match.length);
-        }
-      });
-
+      const corrected = data.choices?.[0]?.message?.content || '';
+      
+      if (!corrected) {
+        throw new Error('No response from AI');
+      }
+      
       setCorrectedText(corrected);
-      toast({ title: 'Grammar check complete', description: `Found ${data.matches.length} issues` });
+      toast({ title: 'Grammar check complete' });
     } catch (error: any) {
+      console.error('Grammar check error:', error);
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } finally {
       setLoading(false);
@@ -54,6 +81,9 @@ const GrammarChecker = () => {
   return (
     <div className="flex-1 overflow-y-auto px-6 py-8">
       <div className="max-w-5xl mx-auto">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4">
+          <ArrowLeft className="w-4 h-4" /> Back
+        </button>
         <h1 className="text-2xl font-bold mb-6">Grammar Checker</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -92,32 +122,6 @@ const GrammarChecker = () => {
             )}
           </div>
         </div>
-
-        {errors.length > 0 && (
-          <div className="mt-6">
-            <h3 className="font-semibold mb-3">Issues Found ({errors.length})</h3>
-            <div className="space-y-2">
-              {errors.map((error, i) => (
-                <div key={i} className="glass-card rounded-lg p-4">
-                  <div className="flex items-start gap-3">
-                    <CheckCircle2 className="w-5 h-5 text-primary mt-0.5" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{error.message}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Context: "{error.context.text}"
-                      </p>
-                      {error.replacements.length > 0 && (
-                        <p className="text-xs text-primary mt-1">
-                          Suggestion: {error.replacements[0].value}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

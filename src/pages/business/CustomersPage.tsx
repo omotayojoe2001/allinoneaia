@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, Edit, ArrowLeft, Upload } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<any[]>([]);
@@ -18,6 +19,7 @@ export default function CustomersPage() {
     amount_owed_to_us: "", amount_we_owe: "", owed_to_us_due_date: "", we_owe_due_date: ""
   });
   const { toast } = useToast();
+  const { formatAmount } = useCurrency();
 
   useEffect(() => {
     fetchCustomers();
@@ -208,11 +210,11 @@ export default function CustomersPage() {
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="bg-green-50 p-4 rounded-lg">
           <p className="text-sm text-gray-600">Total Owed to Us</p>
-          <p className="text-2xl font-bold text-green-600">${totalOwedToUs.toFixed(2)}</p>
+          <p className="text-2xl font-bold text-green-600">{formatAmount(totalOwedToUs)}</p>
         </div>
         <div className="bg-red-50 p-4 rounded-lg">
           <p className="text-sm text-gray-600">Total We Owe</p>
-          <p className="text-2xl font-bold text-red-600">${totalWeOwe.toFixed(2)}</p>
+          <p className="text-2xl font-bold text-red-600">{formatAmount(totalWeOwe)}</p>
         </div>
       </div>
 
@@ -236,9 +238,9 @@ export default function CustomersPage() {
                 <td className="px-4 py-3 font-medium">{customer.name}</td>
                 <td className="px-4 py-3">{customer.email || "N/A"}</td>
                 <td className="px-4 py-3">{customer.phone || "N/A"}</td>
-                <td className="px-4 py-3 text-green-600 font-semibold">${parseFloat(customer.amount_owed_to_us || 0).toFixed(2)}</td>
+                <td className="px-4 py-3 text-green-600 font-semibold">{formatAmount(parseFloat(customer.amount_owed_to_us || 0))}</td>
                 <td className="px-4 py-3">{customer.owed_to_us_due_date || "N/A"}</td>
-                <td className="px-4 py-3 text-red-600 font-semibold">${parseFloat(customer.amount_we_owe || 0).toFixed(2)}</td>
+                <td className="px-4 py-3 text-red-600 font-semibold">{formatAmount(parseFloat(customer.amount_we_owe || 0))}</td>
                 <td className="px-4 py-3">{customer.we_owe_due_date || "N/A"}</td>
                 <td className="px-4 py-3 flex gap-2">
                   <Button variant="ghost" size="sm" onClick={() => handleEdit(customer)}>

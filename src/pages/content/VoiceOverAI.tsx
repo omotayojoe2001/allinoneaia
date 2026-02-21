@@ -1,18 +1,20 @@
-import { useState, useEffect } from 'react';
-import { Mic, Download, Play, Pause } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Mic, Download, Play, Pause, ArrowLeft, Library } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { voicemakerAPI } from '@/lib/voicemaker-api';
+import { elevenlabsAPI } from '@/lib/elevenlabs-api';
 import { supabase } from '@/lib/supabase';
 
 const VoiceOverAI = () => {
+  const navigate = useNavigate();
   const [text, setText] = useState('');
   const [voices, setVoices] = useState<any[]>([]);
-  const [selectedVoice, setSelectedVoice] = useState('ai3-Jony');
+  const [selectedVoice, setSelectedVoice] = useState('pNInz6obpgDQGcFmaJgB');
   const [audioUrl, setAudioUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [playing, setPlaying] = useState(false);
   const { toast } = useToast();
-  const audioRef = useState<HTMLAudioElement | null>(null)[0];
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     loadVoices();
@@ -20,8 +22,8 @@ const VoiceOverAI = () => {
 
   const loadVoices = async () => {
     try {
-      const voiceList = await voicemakerAPI.listVoices('en-US');
-      setVoices(voiceList.slice(0, 20)); // Show first 20 voices
+      const voiceList = await elevenlabsAPI.listVoices();
+      setVoices(voiceList);
     } catch (error) {
       console.error('Failed to load voices:', error);
     }
@@ -35,11 +37,7 @@ const VoiceOverAI = () => {
 
     setLoading(true);
     try {
-      const url = await voicemakerAPI.generateVoice(text, {
-        voiceId: selectedVoice,
-        languageCode: 'en-US',
-      });
-
+      const url = await elevenlabsAPI.generateVoice(text, { voiceId: selectedVoice });
       setAudioUrl(url);
 
       const { data: { user } } = await supabase.auth.getUser();
@@ -53,6 +51,7 @@ const VoiceOverAI = () => {
       }
 
       toast({ title: 'Voice generated successfully' });
+      setTimeout(() => navigate('/content/voiceover/library'), 1500);
     } catch (error: any) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } finally {
@@ -61,11 +60,11 @@ const VoiceOverAI = () => {
   };
 
   const togglePlay = () => {
-    if (!audioRef) return;
+    if (!audioRef.current) return;
     if (playing) {
-      audioRef.pause();
+      audioRef.current.pause();
     } else {
-      audioRef.play();
+      audioRef.current.play();
     }
     setPlaying(!playing);
   };
@@ -73,6 +72,17 @@ const VoiceOverAI = () => {
   return (
     <div className="flex-1 overflow-y-auto px-6 py-8">
       <div className="max-w-5xl mx-auto">
+        <div className="flex items-center justify-between mb-4">
+          <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="w-4 h-4" /> Back
+          </button>
+          <button
+            onClick={() => navigate('/content/voiceover/library')}
+            className="flex items-center gap-2 text-primary hover:text-primary/80"
+          >
+            <Library className="w-4 h-4" /> View Library
+          </button>
+        </div>
         <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
           <Mic className="w-6 h-6" /> VoiceOver AI
         </h1>
@@ -85,8 +95,8 @@ const VoiceOverAI = () => {
             className="w-full p-3 border rounded-lg bg-background mb-4"
           >
             {voices.map((voice) => (
-              <option key={voice.VoiceId} value={voice.VoiceId}>
-                {voice.VoiceWebname} ({voice.VoiceGender}) - {voice.LanguageName}
+              <option key={voice.voice_id} value={voice.voice_id}>
+                {voice.name}
               </option>
             ))}
           </select>
@@ -97,9 +107,9 @@ const VoiceOverAI = () => {
             onChange={(e) => setText(e.target.value)}
             placeholder="Enter text to convert to speech..."
             className="w-full h-48 p-4 border rounded-lg bg-background resize-none mb-4"
-            maxLength={3000}
+            maxLength={5000}
           />
-          <div className="text-xs text-muted-foreground mb-4">{text.length}/3000 characters</div>
+          <div className="text-xs text-muted-foreground mb-4">{text.length}/5000 characters (10k free/month)</div>
 
           <button
             onClick={generateVoice}
@@ -115,10 +125,8 @@ const VoiceOverAI = () => {
             <h3 className="font-semibold mb-4">Generated Audio</h3>
             <audio
               ref={(el) => {
-                if (el) {
-                  (audioRef as any) = el;
-                  el.onended = () => setPlaying(false);
-                }
+                audioRef.current = el;
+                if (el) el.onended = () => setPlaying(false);
               }}
               src={audioUrl}
               className="hidden"

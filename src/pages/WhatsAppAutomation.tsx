@@ -126,7 +126,13 @@ const WhatsAppAutomation = () => {
   const saveCampaign = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const scheduledTime = timingOption === 'custom' ? formData.get('custom_time') : getScheduledTime();
+    let scheduledTime = timingOption === 'custom' ? formData.get('custom_time') as string : getScheduledTime();
+    
+    // Convert custom datetime-local to UTC
+    if (timingOption === 'custom' && scheduledTime) {
+      scheduledTime = new Date(scheduledTime).toISOString();
+    }
+    
     const payload = { user_id: user?.id, target_type: sendType, send_via_whatsapp: true, message_body: formData.get('body'), scheduled_time: scheduledTime, status: 'pending', ...(sendType === 'list' ? { list_id: formData.get('list_id') } : { target_phone: formData.get('phone') }) };
     if (editingCampaign) await supabase.from('scheduled_messages').update(payload).eq('id', editingCampaign.id);
     else await supabase.from('scheduled_messages').insert(payload);

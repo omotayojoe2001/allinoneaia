@@ -22,6 +22,10 @@ export const voicemakerAPI = {
   async generateVoice(text: string, options: VoicemakerOptions = {}): Promise<string> {
     const apiKey = await this.getApiKey();
     
+    if (!apiKey) {
+      throw new Error('Voicemaker API key not configured. Please add it in the database.');
+    }
+
     const response = await fetch('https://developer.voicemaker.in/api/v1/voice/convert', {
       method: 'POST',
       headers: {
@@ -42,28 +46,37 @@ export const voicemakerAPI = {
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Voicemaker API error: ${error}`);
+      const error = await response.json().catch(() => ({ message: 'API request failed' }));
+      throw new Error(error.message || 'Voicemaker API error. Check your subscription status.');
     }
 
     const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to generate voice');
+    }
     return data.path;
   },
 
   async listVoices(language?: string): Promise<any[]> {
     const apiKey = await this.getApiKey();
     
+    if (!apiKey) {
+      return [];
+    }
+
     const response = await fetch('https://developer.voicemaker.in/api/v1/voice/list', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ language: language || '' }),
+      body: JSON.stringify({
+        language: language || 'en-US'
+      }),
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch voices');
+      return [];
     }
 
     const data = await response.json();

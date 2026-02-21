@@ -14,6 +14,10 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  CheckSquare,
+  Calendar,
+  Users,
+  Package,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -22,6 +26,10 @@ import ThemeToggle from "@/components/ThemeToggle";
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: Sparkles, label: "AI Agent", path: "/ai-agent" },
+  { icon: CheckSquare, label: "Tasks", path: "/business/tasks" },
+  { icon: Calendar, label: "Appointments", path: "/business/appointments" },
+  { icon: Users, label: "Customers", path: "/business/customers" },
+  { icon: Package, label: "Stock", path: "/business/stock" },
   { icon: Bot, label: "Chatbot Builder", path: "/chat" },
   { icon: Zap, label: "Automation", path: "/automation" },
   { icon: Headphones, label: "Customer Service", path: "/customer" },

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { FileText, Send, ArrowLeft, Plus, MessageSquare } from 'lucide-react';
+import { Presentation, Send, ArrowLeft, Plus, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
@@ -18,7 +18,7 @@ interface Conversation {
   created_at: string;
 }
 
-const AIWriter = () => {
+const PresentationAI = () => {
   const navigate = useNavigate();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversation, setCurrentConversation] = useState<string | null>(null);
@@ -50,7 +50,7 @@ const AIWriter = () => {
       .from('ai_conversations')
       .select('*')
       .eq('user_id', user.id)
-      .eq('type', 'writer')
+      .eq('type', 'presentation')
       .order('updated_at', { ascending: false });
 
     if (data) setConversations(data);
@@ -70,9 +70,9 @@ const AIWriter = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('ai_conversations')
-      .insert({ user_id: user.id, type: 'writer', title: 'New Conversation' })
+      .insert({ user_id: user.id, type: 'presentation', title: 'New Presentation' })
       .select()
       .single();
 
@@ -93,7 +93,7 @@ const AIWriter = () => {
 
       const { data } = await supabase
         .from('ai_conversations')
-        .insert({ user_id: user.id, type: 'writer', title: input.substring(0, 50) })
+        .insert({ user_id: user.id, type: 'presentation', title: input.substring(0, 50) })
         .select()
         .single();
 
@@ -121,7 +121,7 @@ const AIWriter = () => {
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
           messages: [
-            { role: 'system', content: 'You are a professional content writer. Help users create blog posts, articles, ad copy, and any written content. Use proper markdown formatting with # for headings and blank lines between paragraphs for readability.' },
+            { role: 'system', content: 'You are a professional presentation designer. Help users create compelling presentation content with clear structure, engaging slides, and impactful messaging. Provide slide-by-slide content with titles and bullet points.' },
             ...messages.map(m => ({ role: m.role, content: m.content })),
             { role: 'user', content: input }
           ],
@@ -152,7 +152,7 @@ const AIWriter = () => {
             <ArrowLeft className="w-4 h-4" /> Back
           </button>
           <button onClick={createNewConversation} className="w-full bg-primary text-primary-foreground px-4 py-2 rounded-lg flex items-center gap-2 justify-center">
-            <Plus className="w-4 h-4" /> New Chat
+            <Plus className="w-4 h-4" /> New Presentation
           </button>
         </div>
         <div className="flex-1 overflow-y-auto p-2">
@@ -178,18 +178,18 @@ const AIWriter = () => {
       <div className="flex-1 flex flex-col">
         <div className="p-4 border-b">
           <h1 className="text-xl font-bold flex items-center gap-2">
-            <FileText className="w-5 h-5" /> AI Writer
+            <Presentation className="w-5 h-5" /> Presentation AI
           </h1>
-          <p className="text-sm text-muted-foreground">What would you like to write today?</p>
+          <p className="text-sm text-muted-foreground">What would you like to present today?</p>
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
           {messages.length === 0 ? (
             <div className="h-full flex items-center justify-center text-center">
               <div>
-                <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">Start a new conversation</h3>
-                <p className="text-sm text-muted-foreground">Ask me to write blog posts, articles, ad copy, or any content you need.</p>
+                <Presentation className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg font-semibold mb-2">Start a new presentation</h3>
+                <p className="text-sm text-muted-foreground">Tell me what you want to present and I'll help you create compelling slides.</p>
               </div>
             </div>
           ) : (
@@ -237,4 +237,4 @@ const AIWriter = () => {
   );
 };
 
-export default AIWriter;
+export default PresentationAI;

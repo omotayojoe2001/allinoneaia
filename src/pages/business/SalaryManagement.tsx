@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, Edit, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 export default function SalaryManagement() {
   const [payments, setPayments] = useState<any[]>([]);
@@ -16,6 +17,7 @@ export default function SalaryManagement() {
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState({ staff_id: "", amount: "", month: "", status: "pending", paid_date: "" });
   const { toast } = useToast();
+  const { formatAmount } = useCurrency();
 
   useEffect(() => {
     fetchPayments();
@@ -133,7 +135,7 @@ export default function SalaryManagement() {
                     <SelectValue placeholder="Select staff" />
                   </SelectTrigger>
                   <SelectContent>
-                    {staff.map(s => <SelectItem key={s.id} value={s.id}>{s.name} - ${s.salary || 0}</SelectItem>)}
+                    {staff.map(s => <SelectItem key={s.id} value={s.id}>{s.name} - {formatAmount(s.salary || 0)}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -172,11 +174,11 @@ export default function SalaryManagement() {
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="bg-yellow-50 p-4 rounded-lg">
           <p className="text-sm text-gray-600">Total Pending</p>
-          <p className="text-2xl font-bold text-yellow-600">${totalPending.toFixed(2)}</p>
+          <p className="text-2xl font-bold text-yellow-600">{formatAmount(totalPending)}</p>
         </div>
         <div className="bg-green-50 p-4 rounded-lg">
           <p className="text-sm text-gray-600">Total Paid</p>
-          <p className="text-2xl font-bold text-green-600">${totalPaid.toFixed(2)}</p>
+          <p className="text-2xl font-bold text-green-600">{formatAmount(totalPaid)}</p>
         </div>
       </div>
 
@@ -196,7 +198,7 @@ export default function SalaryManagement() {
             {payments.map((payment) => (
               <tr key={payment.id}>
                 <td className="px-4 py-3 font-medium">{payment.staff?.name}</td>
-                <td className="px-4 py-3 font-semibold">${parseFloat(payment.amount).toFixed(2)}</td>
+                <td className="px-4 py-3 font-semibold">{formatAmount(parseFloat(payment.amount))}</td>
                 <td className="px-4 py-3">{payment.month}</td>
                 <td className="px-4 py-3">
                   <button onClick={() => toggleStatus(payment.id, payment.status)} className={`px-2 py-1 rounded text-xs ${payment.status === "paid" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}>

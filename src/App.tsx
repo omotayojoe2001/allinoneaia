@@ -19,6 +19,7 @@ import WhatsAppChatbots from "@/pages/WhatsAppChatbots";
 import AutomationPage from "@/pages/AutomationPage";
 import EmailAutomation from "@/pages/EmailAutomation";
 import WhatsAppAutomation from "@/pages/WhatsAppAutomation";
+import WhatsAppTest from "@/pages/WhatsAppTest";
 import AIAgentPage from "@/pages/AIAgentPage";
 import CustomerServicePage from "@/pages/CustomerServicePage";
 import ContentStudioPage from "@/pages/ContentStudioPage";
@@ -45,6 +46,11 @@ import SocialScheduler from "@/pages/social/SocialScheduler";
 import GrammarChecker from "@/pages/content/GrammarChecker";
 import AIWriter from "@/pages/content/AIWriter";
 import VoiceOverAI from "@/pages/content/VoiceOverAI";
+import VoiceoverLibrary from "@/pages/content/VoiceoverLibrary";
+import DocumentEditor from "@/pages/content/DocumentEditor";
+import PresentationAI from "@/pages/content/PresentationAI";
+import SEOOptimizer from "@/pages/content/SEOOptimizer";
+import { ReminderScheduler } from "@/components/ReminderScheduler";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -64,6 +70,7 @@ const App = () => (
           <TooltipProvider>
           <Toaster />
           <Sonner />
+          <ReminderScheduler />
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<LandingPage />} />
@@ -79,11 +86,16 @@ const App = () => (
               <Route path="/automation" element={<AppLayout><AutomationPage /></AppLayout>} />
               <Route path="/automation/email" element={<AppLayout><EmailAutomation /></AppLayout>} />
               <Route path="/automation/whatsapp" element={<AppLayout><WhatsAppAutomation /></AppLayout>} />
+              <Route path="/automation/whatsapp-test" element={<AppLayout><WhatsAppTest /></AppLayout>} />
               <Route path="/customer" element={<AppLayout><CustomerServicePage /></AppLayout>} />
               <Route path="/content" element={<AppLayout><ContentStudioPage /></AppLayout>} />
               <Route path="/content/grammar" element={<AppLayout><GrammarChecker /></AppLayout>} />
               <Route path="/content/writer" element={<AppLayout><AIWriter /></AppLayout>} />
+              <Route path="/content/editor" element={<AppLayout><DocumentEditor /></AppLayout>} />
+              <Route path="/content/presentation" element={<AppLayout><PresentationAI /></AppLayout>} />
+              <Route path="/content/seo" element={<AppLayout><SEOOptimizer /></AppLayout>} />
               <Route path="/content/voiceover" element={<AppLayout><VoiceOverAI /></AppLayout>} />
+              <Route path="/content/voiceover/library" element={<AppLayout><VoiceoverLibrary /></AppLayout>} />
               <Route path="/social" element={<AppLayout><SocialMediaPage /></AppLayout>} />
               <Route path="/social/growth" element={<AppLayout><GrowthServices /></AppLayout>} />
               <Route path="/social/scheduler" element={<AppLayout><SocialScheduler /></AppLayout>} />

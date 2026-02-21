@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { Send, Sparkles, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { chatWithAI } from "@/lib/ai";
+import { chatWithAgent } from "@/lib/ai-agent-chat";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
 
 interface Message {
   role: "user" | "assistant";
@@ -13,7 +15,7 @@ const AIAgentPage = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "Hi! I'm your AI assistant. I can help you schedule emails, create WhatsApp campaigns, manage your lists, create content, and more. Just tell me what you need!",
+      content: "Hi! I'm your AI assistant with access to your business data. I can help you:\n\n• Check cashbook, invoices, stock, and appointments\n• Add sales or expenses to cashbook\n• Create reminders\n• Get sales summaries and insights\n\nJust ask me anything like 'What's my cashbook balance?' or 'Add a sale of $500 for product X'",
       timestamp: new Date(),
     },
   ]);
@@ -21,6 +23,7 @@ const AIAgentPage = () => {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
+  const { toast } = useToast();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -31,7 +34,7 @@ const AIAgentPage = () => {
   }, [messages]);
 
   const handleSend = async () => {
-    if (!input.trim() || loading) return;
+    if (!input.trim() || loading || !user) return;
 
     const userMessage: Message = {
       role: "user",
@@ -44,6 +47,17 @@ const AIAgentPage = () => {
     setLoading(true);
 
     try {
+      // Get Groq API key
+      const { data: apiConfig } = await supabase
+        .from('api_config')
+        .select('api_key')
+        .eq('service', 'groq')
+        .single();
+
+      if (!apiConfig?.api_key) {
+        throw new Error('Groq API key not configured');
+      }
+
       const chatHistory = messages
         .filter(m => m.role !== "assistant" || m.content !== messages[0].content)
         .map(m => ({
@@ -51,7 +65,7 @@ const AIAgentPage = () => {
           content: m.content,
         }));
 
-      const aiResponse = await chatWithAI(input, chatHistory);
+      const aiResponse = await chatWithAgent(input, chatHistory, user.id, apiConfig.api_key);
       
       const aiMessage: Message = {
         role: "assistant",
@@ -61,6 +75,11 @@ const AIAgentPage = () => {
       
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
       const errorMessage: Message = {
         role: "assistant",
         content: `Error: ${error.message}`,
@@ -155,7 +174,7 @@ const AIAgentPage = () => {
             </button>
           </div>
           <p className="text-xs text-muted-foreground mt-2 text-center">
-            Try: "Schedule an email to my VIP list tomorrow at 3pm" or "Create a WhatsApp campaign for abandoned carts"
+            Try: "What's my cashbook balance?" or "Add a sale of $500" or "Show me low stock items"
           </p>
         </div>
       </div>
