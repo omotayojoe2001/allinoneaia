@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Edit, ArrowLeft, Upload } from "lucide-react";
+import { Plus, Trash2, Edit, ArrowLeft, Upload, CheckCircle, Bell } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useCurrency } from "@/contexts/CurrencyContext";
 
@@ -137,6 +137,47 @@ export default function CustomersPage() {
     e.target.value = "";
   };
 
+  const markAsPaid = async (customerId: string, type: 'owed_to_us' | 'we_owe') => {
+    const update = type === 'owed_to_us' 
+      ? { amount_owed_to_us: 0, owed_to_us_due_date: null }
+      : { amount_we_owe: 0, we_owe_due_date: null };
+    
+    const { error } = await supabase.from("customers").update(update).eq("id", customerId);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Success", description: "Marked as paid" });
+      fetchCustomers();
+    }
+  };
+
+  const sendReminder = async (customer: any, type: 'owed_to_us' | 'we_owe') => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const amount = type === 'owed_to_us' ? customer.amount_owed_to_us : customer.amount_we_owe;
+    const dueDate = type === 'owed_to_us' ? customer.owed_to_us_due_date : customer.we_owe_due_date;
+    const message = type === 'owed_to_us'
+      ? `Payment reminder: ${customer.name} owes ${formatAmount(parseFloat(amount))}${dueDate ? ` due on ${dueDate}` : ''}`
+      : `Payment reminder: We owe ${customer.name} ${formatAmount(parseFloat(amount))}${dueDate ? ` due on ${dueDate}` : ''}`;
+
+    const { error } = await supabase.from("reminders").insert({
+      user_id: user.id,
+      category: 'custom',
+      title: type === 'owed_to_us' ? `Payment Due: ${customer.name}` : `Payment Owed: ${customer.name}`,
+      description: message,
+      due_date: dueDate || new Date(Date.now() + 86400000).toISOString(),
+      priority: 'high',
+      status: 'pending'
+    });
+
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Success", description: "Reminder created" });
+    }
+  };
+
   const totalOwedToUs = customers.reduce((sum, c) => sum + (parseFloat(c.amount_owed_to_us) || 0), 0);
   const totalWeOwe = customers.reduce((sum, c) => sum + (parseFloat(c.amount_we_owe) || 0), 0);
 
@@ -159,48 +200,54 @@ export default function CustomersPage() {
             <DialogTrigger asChild>
               <Button><Plus className="w-4 h-4 mr-2" />Add Customer</Button>
             </DialogTrigger>
-            <DialogContent className="max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editId ? "Edit Customer" : "Add Customer"}</DialogTitle>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                  <Label>Name *</Label>
-                  <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+                  <Label className="text-sm font-medium">Name *</Label>
+                  <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className="mt-1.5" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Email</Label>
+                    <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="mt-1.5" />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Phone</Label>
+                    <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="mt-1.5" />
+                  </div>
                 </div>
                 <div>
-                  <Label>Email</Label>
-                  <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                  <Label className="text-sm font-medium">Address</Label>
+                  <Textarea value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} rows={3} className="mt-1.5" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Amount Customer Owes Us</Label>
+                    <Input type="number" step="0.01" value={form.amount_owed_to_us} onChange={(e) => setForm({ ...form, amount_owed_to_us: e.target.value })} className="mt-1.5" />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Due Date (Customer Owes Us)</Label>
+                    <Input type="date" value={form.owed_to_us_due_date} onChange={(e) => setForm({ ...form, owed_to_us_due_date: e.target.value })} className="mt-1.5" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Amount We Owe Customer</Label>
+                    <Input type="number" step="0.01" value={form.amount_we_owe} onChange={(e) => setForm({ ...form, amount_we_owe: e.target.value })} className="mt-1.5" />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Due Date (We Owe Customer)</Label>
+                    <Input type="date" value={form.we_owe_due_date} onChange={(e) => setForm({ ...form, we_owe_due_date: e.target.value })} className="mt-1.5" />
+                  </div>
                 </div>
                 <div>
-                  <Label>Phone</Label>
-                  <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+                  <Label className="text-sm font-medium">Notes</Label>
+                  <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={3} className="mt-1.5" />
                 </div>
-                <div>
-                  <Label>Address</Label>
-                  <Textarea value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
-                </div>
-                <div>
-                  <Label>Amount Customer Owes Us</Label>
-                  <Input type="number" step="0.01" value={form.amount_owed_to_us} onChange={(e) => setForm({ ...form, amount_owed_to_us: e.target.value })} />
-                </div>
-                <div>
-                  <Label>Due Date (Customer Owes Us)</Label>
-                  <Input type="date" value={form.owed_to_us_due_date} onChange={(e) => setForm({ ...form, owed_to_us_due_date: e.target.value })} />
-                </div>
-                <div>
-                  <Label>Amount We Owe Customer</Label>
-                  <Input type="number" step="0.01" value={form.amount_we_owe} onChange={(e) => setForm({ ...form, amount_we_owe: e.target.value })} />
-                </div>
-                <div>
-                  <Label>Due Date (We Owe Customer)</Label>
-                  <Input type="date" value={form.we_owe_due_date} onChange={(e) => setForm({ ...form, we_owe_due_date: e.target.value })} />
-                </div>
-                <div>
-                  <Label>Notes</Label>
-                  <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
-                </div>
-                <Button type="submit" className="w-full">{editId ? "Update" : "Add"} Customer</Button>
+                <Button type="submit" className="w-full mt-6">{editId ? "Update" : "Add"} Customer</Button>
               </form>
             </DialogContent>
           </Dialog>
@@ -226,9 +273,7 @@ export default function CustomersPage() {
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Owes Us</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Due Date</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">We Owe</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Due Date</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
             </tr>
           </thead>
@@ -238,10 +283,38 @@ export default function CustomersPage() {
                 <td className="px-4 py-3 font-medium">{customer.name}</td>
                 <td className="px-4 py-3">{customer.email || "N/A"}</td>
                 <td className="px-4 py-3">{customer.phone || "N/A"}</td>
-                <td className="px-4 py-3 text-green-600 font-semibold">{formatAmount(parseFloat(customer.amount_owed_to_us || 0))}</td>
-                <td className="px-4 py-3">{customer.owed_to_us_due_date || "N/A"}</td>
-                <td className="px-4 py-3 text-red-600 font-semibold">{formatAmount(parseFloat(customer.amount_we_owe || 0))}</td>
-                <td className="px-4 py-3">{customer.we_owe_due_date || "N/A"}</td>
+                <td className="px-4 py-3">
+                  <div className="space-y-1">
+                    <div className="text-green-600 font-semibold">{formatAmount(parseFloat(customer.amount_owed_to_us || 0))}</div>
+                    {customer.owed_to_us_due_date && <div className="text-xs text-gray-500">Due: {customer.owed_to_us_due_date}</div>}
+                    {parseFloat(customer.amount_owed_to_us || 0) > 0 && (
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => markAsPaid(customer.id, 'owed_to_us')} title="Mark as Paid">
+                          <CheckCircle className="w-3 h-3 text-green-500" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => sendReminder(customer, 'owed_to_us')} title="Send Reminder">
+                          <Bell className="w-3 h-3 text-orange-500" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="space-y-1">
+                    <div className="text-red-600 font-semibold">{formatAmount(parseFloat(customer.amount_we_owe || 0))}</div>
+                    {customer.we_owe_due_date && <div className="text-xs text-gray-500">Due: {customer.we_owe_due_date}</div>}
+                    {parseFloat(customer.amount_we_owe || 0) > 0 && (
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => markAsPaid(customer.id, 'we_owe')} title="Mark as Paid">
+                          <CheckCircle className="w-3 h-3 text-green-500" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => sendReminder(customer, 'we_owe')} title="Send Reminder">
+                          <Bell className="w-3 h-3 text-orange-500" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </td>
                 <td className="px-4 py-3 flex gap-2">
                   <Button variant="ghost" size="sm" onClick={() => handleEdit(customer)}>
                     <Edit className="w-4 h-4 text-blue-500" />

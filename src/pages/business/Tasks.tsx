@@ -168,52 +168,54 @@ export default function Tasks() {
           <DialogTrigger asChild>
             <Button><Plus className="w-4 h-4 mr-2" />New Task</Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editId ? "Edit Task" : "New Task"}</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <Label>Title *</Label>
-                <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
+                <Label className="text-sm font-medium">Title *</Label>
+                <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required className="mt-1.5" />
               </div>
               <div>
-                <Label>Description</Label>
-                <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+                <Label className="text-sm font-medium">Description</Label>
+                <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={4} className="mt-1.5" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Priority</Label>
+                  <Select value={form.priority} onValueChange={(v) => setForm({ ...form, priority: v })}>
+                    <SelectTrigger className="mt-1.5">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Status</Label>
+                  <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
+                    <SelectTrigger className="mt-1.5">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="in_progress">In Progress</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div>
-                <Label>Priority</Label>
-                <Select value={form.priority} onValueChange={(v) => setForm({ ...form, priority: v })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label className="text-sm font-medium">Due Date</Label>
+                <Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} className="mt-1.5" />
               </div>
               <div>
-                <Label>Status</Label>
-                <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="in_progress">In Progress</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Due Date</Label>
-                <Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} />
-              </div>
-              <div>
-                <Label>Assign To</Label>
-                <div className="flex items-center gap-2 mb-2">
+                <Label className="text-sm font-medium">Assign To</Label>
+                <div className="flex items-center gap-2 mt-2 mb-3">
                   <input 
                     type="checkbox" 
                     id="assign_self" 
@@ -221,7 +223,7 @@ export default function Tasks() {
                     onChange={(e) => setForm({ ...form, assign_to_self: e.target.checked, assigned_to: "" })} 
                     className="w-4 h-4" 
                   />
-                  <Label htmlFor="assign_self" className="cursor-pointer">Assign to myself</Label>
+                  <Label htmlFor="assign_self" className="cursor-pointer text-sm">Assign to myself</Label>
                 </div>
                 {!form.assign_to_self && (
                   <Select value={form.assigned_to} onValueChange={(v) => setForm({ ...form, assigned_to: v })}>
@@ -234,17 +236,17 @@ export default function Tasks() {
                   </Select>
                 )}
                 {form.assign_to_self && ownerProfile && (
-                  <div className="text-sm text-gray-600 mt-2">
+                  <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
                     Assigned to: {ownerProfile.name || ownerProfile.email || "You"}
                   </div>
                 )}
                 {form.assign_to_self && !ownerProfile && (
-                  <div className="text-sm text-yellow-600 mt-2">
+                  <div className="text-sm text-yellow-600 bg-yellow-50 p-3 rounded-lg">
                     Please set up your profile in settings
                   </div>
                 )}
               </div>
-              <Button type="submit" className="w-full">{editId ? "Update" : "Create"} Task</Button>
+              <Button type="submit" className="w-full mt-6">{editId ? "Update" : "Create"} Task</Button>
             </form>
           </DialogContent>
         </Dialog>

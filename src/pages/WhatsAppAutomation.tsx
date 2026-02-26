@@ -20,9 +20,11 @@ const WhatsAppAutomation = () => {
   const [editingCampaign, setEditingCampaign] = useState<any>(null);
   const [editingList, setEditingList] = useState<any>(null);
   const [editingSubscriber, setEditingSubscriber] = useState<any>(null);
-  const [sequenceSteps, setSequenceSteps] = useState<any[]>([{ delay_value: 0, delay_unit: 'minutes', message_body: '' }]);
+  const [sequenceSteps, setSequenceSteps] = useState<any[]>([{ trigger_type: 'immediate', trigger_time: '', delay_after_previous: 0, delay_unit: 'minutes', message_body: '' }]);
   const [sendType, setSendType] = useState<'list' | 'individual'>('list');
   const [timingOption, setTimingOption] = useState<'immediate' | '30min' | '1hour' | '2hour' | 'custom'>('immediate');
+  const [messageBody, setMessageBody] = useState('');
+  const [isCheckingGrammar, setIsCheckingGrammar] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -102,14 +104,61 @@ const WhatsAppAutomation = () => {
     const file = e.target.files?.[0];
     if (!file || !selectedList) return;
     const text = await file.text();
-    const rows = text.split('\n').slice(1);
+    const lines = text.split('\n').filter(line => line.trim());
+    
+    // Skip header row if it exists
+    const startIndex = lines[0].toLowerCase().includes('phone') || lines[0].toLowerCase().includes('email') ? 1 : 0;
+    const rows = lines.slice(startIndex);
+    
     const subs = rows.map(row => {
-      const [email, first_name, last_name, phone] = row.split(',').map(s => s.trim());
-      return { list_id: selectedList.id, email, first_name, last_name, phone };
-    }).filter(s => s.phone);
+      const [first_name, last_name, email, phone] = row.split(',').map(s => s.trim());
+      return { 
+        list_id: selectedList.id, 
+        first_name: first_name || '', 
+        last_name: last_name || '', 
+        email: email || null,
+        phone: phone.startsWith('+') ? phone : `+${phone}` // Ensure + prefix
+      };
+    }).filter(s => s.phone && s.phone.length > 5); // Only valid phone numbers
+    
+    if (subs.length === 0) {
+      alert('No valid contacts found in CSV. Please check the format.');
+      return;
+    }
+    
     await supabase.from('email_subscribers').insert(subs);
+    alert(`Successfully imported ${subs.length} contacts!`);
     setShowUploadModal(false);
     loadSubscribers();
+  };
+
+  const checkGrammar = async () => {
+    if (!messageBody.trim()) return;
+    setIsCheckingGrammar(true);
+    try {
+      const { data: config } = await supabase.from('api_config').select('api_key').eq('service', 'groq').single();
+      if (!config?.api_key) {
+        alert('Please configure Groq API key in Settings > API Configuration');
+        setIsCheckingGrammar(false);
+        return;
+      }
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${config.api_key}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: [{ role: 'user', content: `Fix grammar, spelling, and improve clarity of this message. Return ONLY the improved message, no explanations:\n\n${messageBody}` }],
+          temperature: 0.3
+        })
+      });
+      const result = await response.json();
+      setMessageBody(result.choices[0].message.content.trim());
+    } catch (error) {
+      console.error('Grammar check error:', error);
+      alert('Failed to check grammar');
+    } finally {
+      setIsCheckingGrammar(false);
+    }
   };
 
   const getScheduledTime = () => {
@@ -133,11 +182,12 @@ const WhatsAppAutomation = () => {
       scheduledTime = new Date(scheduledTime).toISOString();
     }
     
-    const payload = { user_id: user?.id, target_type: sendType, send_via_whatsapp: true, message_body: formData.get('body'), scheduled_time: scheduledTime, status: 'pending', ...(sendType === 'list' ? { list_id: formData.get('list_id') } : { target_phone: formData.get('phone') }) };
+    const payload = { user_id: user?.id, target_type: sendType, send_via_whatsapp: true, message_body: messageBody, scheduled_time: scheduledTime, status: 'pending', ...(sendType === 'list' ? { list_id: formData.get('list_id') } : { target_phone: formData.get('phone') }) };
     if (editingCampaign) await supabase.from('scheduled_messages').update(payload).eq('id', editingCampaign.id);
     else await supabase.from('scheduled_messages').insert(payload);
     setShowCampaignModal(false);
     setEditingCampaign(null);
+    setMessageBody('');
     loadCampaigns();
   };
 
@@ -152,13 +202,24 @@ const WhatsAppAutomation = () => {
     const { data: seq } = await supabase.from('email_sequences').insert({ user_id: user?.id, list_id: formData.get('list_id'), name: formData.get('name'), status: 'active' }).select().single();
     if (seq) {
       const steps = sequenceSteps.map((step, i) => {
-        const multiplier = step.delay_unit === 'minutes' ? 1 : step.delay_unit === 'hours' ? 60 : step.delay_unit === 'days' ? 1440 : step.delay_unit === 'weeks' ? 10080 : 43200;
-        return { sequence_id: seq.id, step_order: i + 1, delay_minutes: step.delay_value * multiplier, email_subject: '', message_body: step.message_body };
+        let delay_minutes = 0;
+        if (i > 0) {
+          const multiplier = step.delay_unit === 'minutes' ? 1 : step.delay_unit === 'hours' ? 60 : 1440;
+          delay_minutes = (step.delay_after_previous || 1) * multiplier;
+        }
+        return { 
+          sequence_id: seq.id, 
+          step_order: i + 1, 
+          delay_minutes, 
+          email_subject: '', 
+          message_body: step.message_body,
+          metadata: i === 0 ? { trigger_type: step.trigger_type, trigger_time: step.trigger_time } : step.custom_time ? { custom_time: step.custom_time } : null
+        };
       });
       await supabase.from('sequence_steps').insert(steps);
     }
     setShowSequenceModal(false);
-    setSequenceSteps([{ delay_value: 0, delay_unit: 'minutes', message_body: '' }]);
+    setSequenceSteps([{ trigger_type: 'immediate', trigger_time: '', delay_after_previous: 0, delay_unit: 'minutes', message_body: '' }]);
     loadSequences();
   };
 
@@ -389,22 +450,43 @@ const WhatsAppAutomation = () => {
 
         {showUploadModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowUploadModal(false)}>
-            <div className="bg-card border border-border rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-card border border-border rounded-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">Upload CSV</h2>
                 <button onClick={() => setShowUploadModal(false)}><X className="w-4 h-4" /></button>
               </div>
               <div className="space-y-4">
-                <p className="text-sm text-muted-foreground">CSV format: phone, first_name, last_name, email</p>
-                <input type="file" accept=".csv" onChange={uploadCSV} className="w-full px-3 py-2 bg-background border border-border rounded-lg" />
+                <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+                  <p className="text-sm font-medium mb-2">📋 CSV Format (Required Order):</p>
+                  <div className="bg-background rounded p-3 font-mono text-xs space-y-1">
+                    <div className="text-muted-foreground">first_name,last_name,email,phone</div>
+                    <div>John,Doe,john@example.com,+2347049163283</div>
+                    <div>Jane,Smith,jane@example.com,+2348012345678</div>
+                    <div>Bob,Johnson,,+2349087654321</div>
+                  </div>
+                  <div className="mt-3 space-y-1 text-xs text-muted-foreground">
+                    <p>✅ <strong>First Name</strong>: Required</p>
+                    <p>✅ <strong>Last Name</strong>: Optional (can be empty)</p>
+                    <p>✅ <strong>Email</strong>: Optional (can be empty)</p>
+                    <p>✅ <strong>Phone</strong>: Required, with + and country code (e.g., +234...)</p>
+                    <p>⚠️ First row can be header (will be skipped automatically)</p>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Select CSV File</label>
+                  <input type="file" accept=".csv" onChange={uploadCSV} className="w-full mt-2 px-3 py-2 bg-background border border-border rounded-lg" />
+                </div>
+                <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
+                  <p className="text-xs text-yellow-600 dark:text-yellow-400">💡 <strong>Tip</strong>: Export from Excel/Google Sheets as CSV (Comma delimited)</p>
+                </div>
               </div>
             </div>
           </div>
         )}
 
         {showCampaignModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => { setShowCampaignModal(false); setEditingCampaign(null); }}>
-            <div className="bg-card border border-border rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => { setShowCampaignModal(false); setEditingCampaign(null); setMessageBody(''); }}>
+            <div className="bg-card border border-border rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">{editingCampaign ? 'Edit' : 'Create'} WhatsApp Campaign</h2>
                 <button onClick={() => { setShowCampaignModal(false); setEditingCampaign(null); }}><X className="w-4 h-4" /></button>
@@ -433,12 +515,25 @@ const WhatsAppAutomation = () => {
                 )}
                 <div>
                   <label className="text-sm font-medium">Message</label>
-                  <div className="flex gap-1 mb-2">
-                    <button type="button" onClick={() => { const textarea = document.querySelector('textarea[name="body"]') as HTMLTextAreaElement; if (textarea) { const pos = textarea.selectionStart; textarea.value = textarea.value.substring(0, pos) + '{{first_name}}' + textarea.value.substring(pos); textarea.focus(); textarea.setSelectionRange(pos + 14, pos + 14); } }} className="text-xs px-2 py-1 bg-secondary rounded hover:bg-secondary/80">{"{{first_name}}"}</button>
-                    <button type="button" onClick={() => { const textarea = document.querySelector('textarea[name="body"]') as HTMLTextAreaElement; if (textarea) { const pos = textarea.selectionStart; textarea.value = textarea.value.substring(0, pos) + '{{last_name}}' + textarea.value.substring(pos); textarea.focus(); textarea.setSelectionRange(pos + 13, pos + 13); } }} className="text-xs px-2 py-1 bg-secondary rounded hover:bg-secondary/80">{"{{last_name}}"}</button>
-                    <button type="button" onClick={() => { const textarea = document.querySelector('textarea[name="body"]') as HTMLTextAreaElement; if (textarea) { const pos = textarea.selectionStart; textarea.value = textarea.value.substring(0, pos) + '{{phone}}' + textarea.value.substring(pos); textarea.focus(); textarea.setSelectionRange(pos + 9, pos + 9); } }} className="text-xs px-2 py-1 bg-secondary rounded hover:bg-secondary/80">{"{{phone}}"}</button>
+                  <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 mb-2 text-xs">
+                    <p className="font-medium mb-1">💡 Tips:</p>
+                    <ul className="space-y-0.5 text-muted-foreground">
+                      <li>• Personalize with variables: first_name, last_name, phone</li>
+                      <li>• Keep messages under 160 characters for best delivery</li>
+                      <li>• Use AI grammar check to improve your message</li>
+                      <li>• Avoid spam words like "free", "winner", "click now"</li>
+                    </ul>
                   </div>
-                  <textarea name="body" required defaultValue={editingCampaign?.message_body} className="w-full mt-1 px-3 py-2 bg-background border border-border rounded-lg" rows={5} />
+                  <div className="flex gap-1 mb-2">
+                    <button type="button" onClick={() => { const pos = messageBody.length; setMessageBody(messageBody.substring(0, pos) + '{{first_name}}'); }} className="text-xs px-2 py-1 bg-secondary rounded hover:bg-secondary/80">{"{{first_name}}"}</button>
+                    <button type="button" onClick={() => { const pos = messageBody.length; setMessageBody(messageBody.substring(0, pos) + '{{last_name}}'); }} className="text-xs px-2 py-1 bg-secondary rounded hover:bg-secondary/80">{"{{last_name}}"}</button>
+                    <button type="button" onClick={() => { const pos = messageBody.length; setMessageBody(messageBody.substring(0, pos) + '{{phone}}'); }} className="text-xs px-2 py-1 bg-secondary rounded hover:bg-secondary/80">{"{{phone}}"}</button>
+                    <button type="button" onClick={checkGrammar} disabled={isCheckingGrammar} className="text-xs px-2 py-1 bg-green-500/20 text-green-400 rounded hover:bg-green-500/30 ml-auto disabled:opacity-50">
+                      {isCheckingGrammar ? '⏳ Checking...' : '✨ AI Grammar Check'}
+                    </button>
+                  </div>
+                  <textarea value={messageBody} onChange={(e) => setMessageBody(e.target.value)} required className="w-full mt-1 px-3 py-2 bg-background border border-border rounded-lg" rows={8} placeholder="Type your message here..." />
+                  <p className="text-xs text-muted-foreground mt-1">{messageBody.length} characters</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium">Send Timing</label>
@@ -489,27 +584,78 @@ const WhatsAppAutomation = () => {
                         <span className="text-sm font-medium">Step {i + 1}</span>
                         {i > 0 && <button type="button" onClick={() => setSequenceSteps(sequenceSteps.filter((_, idx) => idx !== i))} className="text-red-400"><Trash2 className="w-4 h-4" /></button>}
                       </div>
-                      <div>
-                        <label className="text-xs text-muted-foreground">Delay</label>
-                        <div className="flex gap-2">
-                          <input type="number" value={step.delay_value || 0} onChange={(e) => {
+                      
+                      {i === 0 ? (
+                        <div>
+                          <label className="text-xs text-muted-foreground">When should the first message send?</label>
+                          <select value={step.trigger_type || 'immediate'} onChange={(e) => {
                             const newSteps = [...sequenceSteps];
-                            newSteps[i].delay_value = parseInt(e.target.value) || 0;
+                            newSteps[0].trigger_type = e.target.value;
                             setSequenceSteps(newSteps);
-                          }} className="w-24 mt-1 px-3 py-2 bg-background border border-border rounded-lg" />
-                          <select value={step.delay_unit || 'minutes'} onChange={(e) => {
-                            const newSteps = [...sequenceSteps];
-                            newSteps[i].delay_unit = e.target.value;
-                            setSequenceSteps(newSteps);
-                          }} className="flex-1 mt-1 px-3 py-2 bg-background border border-border rounded-lg">
-                            <option value="minutes">Minutes</option>
-                            <option value="hours">Hours</option>
-                            <option value="days">Days</option>
-                            <option value="weeks">Weeks</option>
-                            <option value="months">Months</option>
+                          }} className="w-full mt-1 px-3 py-2 bg-background border border-border rounded-lg">
+                            <option value="immediate">Immediately when subscriber joins list</option>
+                            <option value="same_day">Same day at specific time</option>
+                            <option value="next_day">Next day at specific time</option>
+                            <option value="custom">Custom date & time</option>
                           </select>
+                          
+                          {(step.trigger_type === 'same_day' || step.trigger_type === 'next_day') && (
+                            <div className="mt-2">
+                              <label className="text-xs text-muted-foreground">Select Time</label>
+                              <input type="time" value={step.trigger_time || ''} onChange={(e) => {
+                                const newSteps = [...sequenceSteps];
+                                newSteps[0].trigger_time = e.target.value;
+                                setSequenceSteps(newSteps);
+                              }} className="w-full mt-1 px-3 py-2 bg-background border border-border rounded-lg" />
+                            </div>
+                          )}
+                          
+                          {step.trigger_type === 'custom' && (
+                            <div className="mt-2">
+                              <label className="text-xs text-muted-foreground">Select Date & Time</label>
+                              <input type="datetime-local" value={step.trigger_time || ''} onChange={(e) => {
+                                const newSteps = [...sequenceSteps];
+                                newSteps[0].trigger_time = e.target.value;
+                                setSequenceSteps(newSteps);
+                              }} className="w-full mt-1 px-3 py-2 bg-background border border-border rounded-lg" />
+                            </div>
+                          )}
                         </div>
-                      </div>
+                      ) : (
+                        <div>
+                          <label className="text-xs text-muted-foreground">When should this message send?</label>
+                          <div className="space-y-2 mt-1">
+                            <div>
+                              <label className="text-xs text-muted-foreground">Delay after Step {i}</label>
+                              <div className="flex gap-2">
+                                <input type="number" min="1" value={step.delay_after_previous || 1} onChange={(e) => {
+                                  const newSteps = [...sequenceSteps];
+                                  newSteps[i].delay_after_previous = parseInt(e.target.value) || 1;
+                                  setSequenceSteps(newSteps);
+                                }} className="w-24 px-3 py-2 bg-background border border-border rounded-lg" />
+                                <select value={step.delay_unit || 'hours'} onChange={(e) => {
+                                  const newSteps = [...sequenceSteps];
+                                  newSteps[i].delay_unit = e.target.value;
+                                  setSequenceSteps(newSteps);
+                                }} className="flex-1 px-3 py-2 bg-background border border-border rounded-lg">
+                                  <option value="minutes">Minutes after Step {i}</option>
+                                  <option value="hours">Hours after Step {i}</option>
+                                  <option value="days">Days after Step {i}</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div>
+                              <label className="text-xs text-muted-foreground">OR select exact date & time</label>
+                              <input type="datetime-local" value={step.custom_time || ''} onChange={(e) => {
+                                const newSteps = [...sequenceSteps];
+                                newSteps[i].custom_time = e.target.value;
+                                setSequenceSteps(newSteps);
+                              }} className="w-full px-3 py-2 bg-background border border-border rounded-lg" />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
                       <div>
                         <label className="text-xs text-muted-foreground">Message</label>
                         <div className="flex gap-1 mb-1">
@@ -525,7 +671,7 @@ const WhatsAppAutomation = () => {
                       </div>
                     </div>
                   ))}
-                  <button type="button" onClick={() => setSequenceSteps([...sequenceSteps, { delay_value: 0, delay_unit: 'minutes', message_body: '' }])} className="w-full py-2 border border-dashed border-border rounded-lg text-sm text-muted-foreground hover:border-primary hover:text-primary">
+                  <button type="button" onClick={() => setSequenceSteps([...sequenceSteps, { delay_after_previous: 1, delay_unit: 'hours', message_body: '' }])} className="w-full py-2 border border-dashed border-border rounded-lg text-sm text-muted-foreground hover:border-primary hover:text-primary">
                     + Add Step
                   </button>
                 </div>

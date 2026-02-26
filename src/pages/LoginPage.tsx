@@ -1,22 +1,40 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Sparkles, Eye, EyeOff, ArrowRight, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ThemeToggle from "@/components/ThemeToggle";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 const LoginPage = () => {
+  const navigate = useNavigate();
+  const { signIn } = useAuth();
+  const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [showReferral, setShowReferral] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     email: "",
     password: "",
     referralCode: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    window.location.href = "/dashboard";
+    setLoading(true);
+    try {
+      await signIn(form.email, form.password);
+      navigate("/dashboard");
+    } catch (error: any) {
+      toast({ 
+        title: "Login Failed", 
+        description: error.message || "Invalid email or password", 
+        variant: "destructive" 
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -124,8 +142,8 @@ const LoginPage = () => {
                 </div>
               )}
 
-              <Button type="submit" className="w-full" size="lg">
-                Log In <ArrowRight className="w-4 h-4" />
+              <Button type="submit" className="w-full" size="lg" disabled={loading}>
+                {loading ? "Logging in..." : "Log In"} <ArrowRight className="w-4 h-4" />
               </Button>
             </form>
 

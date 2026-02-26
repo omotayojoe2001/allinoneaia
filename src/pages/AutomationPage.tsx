@@ -1,28 +1,49 @@
 import { Zap, Mail, MessageCircle, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
-
-const automationTypes = [
-  { 
-    id: "email", 
-    name: "Email Automation", 
-    icon: Mail, 
-    color: "bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/20",
-    iconColor: "text-blue-500",
-    description: "Email sequences, lists, subscribers & landing pages",
-    count: 3
-  },
-  { 
-    id: "whatsapp", 
-    name: "WhatsApp Automation", 
-    icon: MessageCircle, 
-    color: "bg-green-500/10 hover:bg-green-500/20 border-green-500/20",
-    iconColor: "text-green-500",
-    description: "Bulk messages, drip campaigns & follow-ups",
-    count: 2
-  },
-];
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 
 const AutomationPage = () => {
+  const { user } = useAuth();
+  const [whatsappCount, setWhatsappCount] = useState(0);
+  const [telegramCount, setTelegramCount] = useState(0);
+
+  useEffect(() => {
+    if (user) {
+      loadCounts();
+    }
+  }, [user]);
+
+  const loadCounts = async () => {
+    const [whatsapp, telegram] = await Promise.all([
+      supabase.from('chatbots').select('id', { count: 'exact' }).eq('user_id', user?.id).eq('platform', 'whatsapp'),
+      supabase.from('chatbots').select('id', { count: 'exact' }).eq('user_id', user?.id).eq('platform', 'telegram')
+    ]);
+    setWhatsappCount(whatsapp.count || 0);
+    setTelegramCount(telegram.count || 0);
+  };
+
+  const automationTypes = [
+    { 
+      id: "email", 
+      name: "Email Automation", 
+      icon: Mail, 
+      color: "bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/20",
+      iconColor: "text-blue-500",
+      description: "Email sequences, lists, subscribers & landing pages",
+      count: 0
+    },
+    { 
+      id: "whatsapp", 
+      name: "WhatsApp Automation", 
+      icon: MessageCircle, 
+      color: "bg-green-500/10 hover:bg-green-500/20 border-green-500/20",
+      iconColor: "text-green-500",
+      description: "Bulk messages, drip campaigns & follow-ups",
+      count: whatsappCount
+    },
+  ];
   return (
     <div className="flex-1 overflow-y-auto px-6 py-8">
       <div className="max-w-5xl mx-auto">

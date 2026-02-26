@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { Settings, Upload } from "lucide-react";
+import { Settings, Upload, LogOut } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 const SettingsPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [userInfo, setUserInfo] = useState({ first_name: "", last_name: "", email: "" });
   const [form, setForm] = useState({
     business_name: "",
@@ -134,6 +136,11 @@ const SettingsPage = () => {
     updateForm({ business_logo_url: publicUrl });
     setUploading(false);
     toast({ title: "Success", description: "Logo uploaded" });
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/login');
   };
 
   return (
@@ -265,6 +272,13 @@ const SettingsPage = () => {
           {hasChanges && (
             <p className="text-xs text-yellow-600 text-center mt-2">⚠️ You have unsaved changes</p>
           )}
+
+          <div className="border-t pt-6">
+            <Button onClick={handleLogout} variant="destructive" className="w-full">
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
+          </div>
         </div>
       </div>
     </div>

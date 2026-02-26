@@ -20,7 +20,7 @@ const EmailAutomation = () => {
   const [editingCampaign, setEditingCampaign] = useState<any>(null);
   const [editingList, setEditingList] = useState<any>(null);
   const [editingSubscriber, setEditingSubscriber] = useState<any>(null);
-  const [sequenceSteps, setSequenceSteps] = useState<any[]>([{ delay_value: 0, delay_unit: 'minutes', email_subject: '', message_body: '' }]);
+  const [sequenceSteps, setSequenceSteps] = useState<any[]>([{ trigger_type: 'immediate', trigger_time: '', delay_after_previous: 0, delay_unit: 'minutes', email_subject: '', message_body: '' }]);
   const [sendType, setSendType] = useState<'list' | 'individual'>('list');
   const [timingOption, setTimingOption] = useState<'immediate' | '30min' | '1hour' | '2hour' | 'custom'>('immediate');
 
@@ -146,13 +146,24 @@ const EmailAutomation = () => {
     const { data: seq } = await supabase.from('email_sequences').insert({ user_id: user?.id, list_id: formData.get('list_id'), name: formData.get('name'), status: 'active' }).select().single();
     if (seq) {
       const steps = sequenceSteps.map((step, i) => {
-        const multiplier = step.delay_unit === 'minutes' ? 1 : step.delay_unit === 'hours' ? 60 : step.delay_unit === 'days' ? 1440 : step.delay_unit === 'weeks' ? 10080 : 43200;
-        return { sequence_id: seq.id, step_order: i + 1, delay_minutes: step.delay_value * multiplier, email_subject: step.email_subject, message_body: step.message_body };
+        let delay_minutes = 0;
+        if (i > 0) {
+          const multiplier = step.delay_unit === 'minutes' ? 1 : step.delay_unit === 'hours' ? 60 : 1440;
+          delay_minutes = (step.delay_after_previous || 1) * multiplier;
+        }
+        return { 
+          sequence_id: seq.id, 
+          step_order: i + 1, 
+          delay_minutes, 
+          email_subject: step.email_subject, 
+          message_body: step.message_body,
+          metadata: i === 0 ? { trigger_type: step.trigger_type, trigger_time: step.trigger_time } : null
+        };
       });
       await supabase.from('sequence_steps').insert(steps);
     }
     setShowSequenceModal(false);
-    setSequenceSteps([{ delay_value: 0, delay_unit: 'minutes', email_subject: '', message_body: '' }]);
+    setSequenceSteps([{ trigger_type: 'immediate', trigger_time: '', delay_after_previous: 0, delay_unit: 'minutes', email_subject: '', message_body: '' }]);
     loadSequences();
   };
 
@@ -425,33 +436,84 @@ const EmailAutomation = () => {
                         <span className="text-sm font-medium">Step {i + 1}</span>
                         {i > 0 && <button type="button" onClick={() => setSequenceSteps(sequenceSteps.filter((_, idx) => idx !== i))} className="text-red-400"><Trash2 className="w-4 h-4" /></button>}
                       </div>
-                      <div>
-                        <label className="text-xs text-muted-foreground">Delay</label>
-                        <div className="flex gap-2">
-                          <input type="number" value={step.delay_value || 0} onChange={(e) => {
+                      
+                      {i === 0 ? (
+                        <div>
+                          <label className="text-xs text-muted-foreground">When should the first message send?</label>
+                          <select value={step.trigger_type || 'immediate'} onChange={(e) => {
                             const newSteps = [...sequenceSteps];
-                            newSteps[i].delay_value = parseInt(e.target.value) || 0;
+                            newSteps[0].trigger_type = e.target.value;
                             setSequenceSteps(newSteps);
-                          }} className="w-24 mt-1 px-3 py-2 bg-background border border-border rounded-lg" />
-                          <select value={step.delay_unit || 'minutes'} onChange={(e) => {
-                            const newSteps = [...sequenceSteps];
-                            newSteps[i].delay_unit = e.target.value;
-                            setSequenceSteps(newSteps);
-                          }} className="flex-1 mt-1 px-3 py-2 bg-background border border-border rounded-lg">
-                            <option value="minutes">Minutes</option>
-                            <option value="hours">Hours</option>
-                            <option value="days">Days</option>
-                            <option value="weeks">Weeks</option>
-                            <option value="months">Months</option>
+                          }} className="w-full mt-1 px-3 py-2 bg-background border border-border rounded-lg">
+                            <option value="immediate">Immediately when subscriber joins list</option>
+                            <option value="same_day">Same day at specific time</option>
+                            <option value="next_day">Next day at specific time</option>
+                            <option value="custom">Custom date & time</option>
                           </select>
+                          
+                          {(step.trigger_type === 'same_day' || step.trigger_type === 'next_day') && (
+                            <div className="mt-2">
+                              <label className="text-xs text-muted-foreground">Select Time</label>
+                              <input type="time" value={step.trigger_time || ''} onChange={(e) => {
+                                const newSteps = [...sequenceSteps];
+                                newSteps[0].trigger_time = e.target.value;
+                                setSequenceSteps(newSteps);
+                              }} className="w-full mt-1 px-3 py-2 bg-background border border-border rounded-lg" />
+                            </div>
+                          )}
+                          
+                          {step.trigger_type === 'custom' && (
+                            <div className="mt-2">
+                              <label className="text-xs text-muted-foreground">Select Date & Time</label>
+                              <input type="datetime-local" value={step.trigger_time || ''} onChange={(e) => {
+                                const newSteps = [...sequenceSteps];
+                                newSteps[0].trigger_time = e.target.value;
+                                setSequenceSteps(newSteps);
+                              }} className="w-full mt-1 px-3 py-2 bg-background border border-border rounded-lg" />
+                            </div>
+                          )}
                         </div>
-                      </div>
+                      ) : (
+                        <div>
+                          <label className="text-xs text-muted-foreground">When should this message send?</label>
+                          <div className="space-y-2 mt-1">
+                            <div>
+                              <label className="text-xs text-muted-foreground">Delay after Step {i}</label>
+                              <div className="flex gap-2">
+                                <input type="number" min="1" value={step.delay_after_previous || 1} onChange={(e) => {
+                                  const newSteps = [...sequenceSteps];
+                                  newSteps[i].delay_after_previous = parseInt(e.target.value) || 1;
+                                  setSequenceSteps(newSteps);
+                                }} className="w-24 px-3 py-2 bg-background border border-border rounded-lg" />
+                                <select value={step.delay_unit || 'hours'} onChange={(e) => {
+                                  const newSteps = [...sequenceSteps];
+                                  newSteps[i].delay_unit = e.target.value;
+                                  setSequenceSteps(newSteps);
+                                }} className="flex-1 px-3 py-2 bg-background border border-border rounded-lg">
+                                  <option value="minutes">Minutes after Step {i}</option>
+                                  <option value="hours">Hours after Step {i}</option>
+                                  <option value="days">Days after Step {i}</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div>
+                              <label className="text-xs text-muted-foreground">OR select exact date & time</label>
+                              <input type="datetime-local" value={step.custom_time || ''} onChange={(e) => {
+                                const newSteps = [...sequenceSteps];
+                                newSteps[i].custom_time = e.target.value;
+                                setSequenceSteps(newSteps);
+                              }} className="w-full px-3 py-2 bg-background border border-border rounded-lg" />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
                       <div>
                         <label className="text-xs text-muted-foreground">Subject</label>
                         <div className="flex gap-1 mb-1">
-                          <button type="button" onClick={() => { const input = document.querySelectorAll('input[type="text"]')[i] as HTMLInputElement; if (input) { const pos = input.selectionStart || 0; input.value = input.value.substring(0, pos) + '{{first_name}}' + input.value.substring(pos); input.focus(); input.setSelectionRange(pos + 14, pos + 14); } }} className="text-xs px-1.5 py-0.5 bg-secondary rounded hover:bg-secondary/80">{{first_name}}</button>
-                          <button type="button" onClick={() => { const input = document.querySelectorAll('input[type="text"]')[i] as HTMLInputElement; if (input) { const pos = input.selectionStart || 0; input.value = input.value.substring(0, pos) + '{{last_name}}' + input.value.substring(pos); input.focus(); input.setSelectionRange(pos + 13, pos + 13); } }} className="text-xs px-1.5 py-0.5 bg-secondary rounded hover:bg-secondary/80">{{last_name}}</button>
-                          <button type="button" onClick={() => { const input = document.querySelectorAll('input[type="text"]')[i] as HTMLInputElement; if (input) { const pos = input.selectionStart || 0; input.value = input.value.substring(0, pos) + '{{email}}' + input.value.substring(pos); input.focus(); input.setSelectionRange(pos + 9, pos + 9); } }} className="text-xs px-1.5 py-0.5 bg-secondary rounded hover:bg-secondary/80">{{email}}</button>
+                          <button type="button" onClick={() => { const input = document.querySelectorAll('input[type="text"]')[i] as HTMLInputElement; if (input) { const pos = input.selectionStart || 0; input.value = input.value.substring(0, pos) + '{{first_name}}' + input.value.substring(pos); input.focus(); input.setSelectionRange(pos + 14, pos + 14); } }} className="text-xs px-1.5 py-0.5 bg-secondary rounded hover:bg-secondary/80">{"{{first_name}}"}</button>
+                          <button type="button" onClick={() => { const input = document.querySelectorAll('input[type="text"]')[i] as HTMLInputElement; if (input) { const pos = input.selectionStart || 0; input.value = input.value.substring(0, pos) + '{{last_name}}' + input.value.substring(pos); input.focus(); input.setSelectionRange(pos + 13, pos + 13); } }} className="text-xs px-1.5 py-0.5 bg-secondary rounded hover:bg-secondary/80">{"{{last_name}}"}</button>
+                          <button type="button" onClick={() => { const input = document.querySelectorAll('input[type="text"]')[i] as HTMLInputElement; if (input) { const pos = input.selectionStart || 0; input.value = input.value.substring(0, pos) + '{{email}}' + input.value.substring(pos); input.focus(); input.setSelectionRange(pos + 9, pos + 9); } }} className="text-xs px-1.5 py-0.5 bg-secondary rounded hover:bg-secondary/80">{"{{email}}"}</button>
                         </div>
                         <input value={step.email_subject || ''} onChange={(e) => {
                           const newSteps = [...sequenceSteps];
@@ -462,9 +524,9 @@ const EmailAutomation = () => {
                       <div>
                         <label className="text-xs text-muted-foreground">Message</label>
                         <div className="flex gap-1 mb-1">
-                          <button type="button" onClick={() => { const textarea = document.querySelectorAll('textarea')[i] as HTMLTextAreaElement; if (textarea) { const pos = textarea.selectionStart; textarea.value = textarea.value.substring(0, pos) + '{{first_name}}' + textarea.value.substring(pos); textarea.focus(); textarea.setSelectionRange(pos + 14, pos + 14); } }} className="text-xs px-1.5 py-0.5 bg-secondary rounded hover:bg-secondary/80">{{first_name}}</button>
-                          <button type="button" onClick={() => { const textarea = document.querySelectorAll('textarea')[i] as HTMLTextAreaElement; if (textarea) { const pos = textarea.selectionStart; textarea.value = textarea.value.substring(0, pos) + '{{last_name}}' + textarea.value.substring(pos); textarea.focus(); textarea.setSelectionRange(pos + 13, pos + 13); } }} className="text-xs px-1.5 py-0.5 bg-secondary rounded hover:bg-secondary/80">{{last_name}}</button>
-                          <button type="button" onClick={() => { const textarea = document.querySelectorAll('textarea')[i] as HTMLTextAreaElement; if (textarea) { const pos = textarea.selectionStart; textarea.value = textarea.value.substring(0, pos) + '{{email}}' + textarea.value.substring(pos); textarea.focus(); textarea.setSelectionRange(pos + 9, pos + 9); } }} className="text-xs px-1.5 py-0.5 bg-secondary rounded hover:bg-secondary/80">{{email}}</button>
+                          <button type="button" onClick={() => { const textarea = document.querySelectorAll('textarea')[i] as HTMLTextAreaElement; if (textarea) { const pos = textarea.selectionStart; textarea.value = textarea.value.substring(0, pos) + '{{first_name}}' + textarea.value.substring(pos); textarea.focus(); textarea.setSelectionRange(pos + 14, pos + 14); } }} className="text-xs px-1.5 py-0.5 bg-secondary rounded hover:bg-secondary/80">{"{{first_name}}"}</button>
+                          <button type="button" onClick={() => { const textarea = document.querySelectorAll('textarea')[i] as HTMLTextAreaElement; if (textarea) { const pos = textarea.selectionStart; textarea.value = textarea.value.substring(0, pos) + '{{last_name}}' + textarea.value.substring(pos); textarea.focus(); textarea.setSelectionRange(pos + 13, pos + 13); } }} className="text-xs px-1.5 py-0.5 bg-secondary rounded hover:bg-secondary/80">{"{{last_name}}"}</button>
+                          <button type="button" onClick={() => { const textarea = document.querySelectorAll('textarea')[i] as HTMLTextAreaElement; if (textarea) { const pos = textarea.selectionStart; textarea.value = textarea.value.substring(0, pos) + '{{email}}' + textarea.value.substring(pos); textarea.focus(); textarea.setSelectionRange(pos + 9, pos + 9); } }} className="text-xs px-1.5 py-0.5 bg-secondary rounded hover:bg-secondary/80">{"{{email}}"}</button>
                         </div>
                         <textarea value={step.message_body || ''} onChange={(e) => {
                           const newSteps = [...sequenceSteps];
@@ -474,7 +536,7 @@ const EmailAutomation = () => {
                       </div>
                     </div>
                   ))}
-                  <button type="button" onClick={() => setSequenceSteps([...sequenceSteps, { delay_value: 0, delay_unit: 'minutes', email_subject: '', message_body: '' }])} className="w-full py-2 border border-dashed border-border rounded-lg text-sm text-muted-foreground hover:border-primary hover:text-primary">
+                  <button type="button" onClick={() => setSequenceSteps([...sequenceSteps, { delay_after_previous: 1, delay_unit: 'hours', email_subject: '', message_body: '' }])} className="w-full py-2 border border-dashed border-border rounded-lg text-sm text-muted-foreground hover:border-primary hover:text-primary">
                     + Add Step
                   </button>
                 </div>
@@ -486,7 +548,7 @@ const EmailAutomation = () => {
 
         {showCampaignModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => { setShowCampaignModal(false); setEditingCampaign(null); }}>
-            <div className="bg-card border border-border rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-card border border-border rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">{editingCampaign ? 'Edit' : 'Create'} Campaign</h2>
                 <button onClick={() => { setShowCampaignModal(false); setEditingCampaign(null); }}><X className="w-4 h-4" /></button>
@@ -524,13 +586,13 @@ const EmailAutomation = () => {
                   <input name="subject" required defaultValue={editingCampaign?.email_subject} className="w-full mt-1 px-3 py-2 bg-background border border-border rounded-lg" />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Message (use {"{"}{"{"} first_name {"}"} {"}"} for personalization)</label>
+                  <label className="text-sm font-medium">Message (use variables for personalization)</label>
                   <div className="flex gap-1 mb-2">
-                    <button type="button" onClick={() => { const textarea = document.querySelector('textarea[name="body"]') as HTMLTextAreaElement; if (textarea) { const pos = textarea.selectionStart; textarea.value = textarea.value.substring(0, pos) + '{{first_name}}' + textarea.value.substring(pos); textarea.focus(); textarea.setSelectionRange(pos + 14, pos + 14); } }} className="text-xs px-2 py-1 bg-secondary rounded hover:bg-secondary/80">{{first_name}}</button>
-                    <button type="button" onClick={() => { const textarea = document.querySelector('textarea[name="body"]') as HTMLTextAreaElement; if (textarea) { const pos = textarea.selectionStart; textarea.value = textarea.value.substring(0, pos) + '{{last_name}}' + textarea.value.substring(pos); textarea.focus(); textarea.setSelectionRange(pos + 13, pos + 13); } }} className="text-xs px-2 py-1 bg-secondary rounded hover:bg-secondary/80">{{last_name}}</button>
-                    <button type="button" onClick={() => { const textarea = document.querySelector('textarea[name="body"]') as HTMLTextAreaElement; if (textarea) { const pos = textarea.selectionStart; textarea.value = textarea.value.substring(0, pos) + '{{email}}' + textarea.value.substring(pos); textarea.focus(); textarea.setSelectionRange(pos + 9, pos + 9); } }} className="text-xs px-2 py-1 bg-secondary rounded hover:bg-secondary/80">{{email}}</button>
+                    <button type="button" onClick={() => { const textarea = document.querySelector('textarea[name="body"]') as HTMLTextAreaElement; if (textarea) { const pos = textarea.selectionStart; textarea.value = textarea.value.substring(0, pos) + '{{first_name}}' + textarea.value.substring(pos); textarea.focus(); textarea.setSelectionRange(pos + 14, pos + 14); } }} className="text-xs px-2 py-1 bg-secondary rounded hover:bg-secondary/80">{"{{first_name}}"}</button>
+                    <button type="button" onClick={() => { const textarea = document.querySelector('textarea[name="body"]') as HTMLTextAreaElement; if (textarea) { const pos = textarea.selectionStart; textarea.value = textarea.value.substring(0, pos) + '{{last_name}}' + textarea.value.substring(pos); textarea.focus(); textarea.setSelectionRange(pos + 13, pos + 13); } }} className="text-xs px-2 py-1 bg-secondary rounded hover:bg-secondary/80">{"{{last_name}}"}</button>
+                    <button type="button" onClick={() => { const textarea = document.querySelector('textarea[name="body"]') as HTMLTextAreaElement; if (textarea) { const pos = textarea.selectionStart; textarea.value = textarea.value.substring(0, pos) + '{{email}}' + textarea.value.substring(pos); textarea.focus(); textarea.setSelectionRange(pos + 9, pos + 9); } }} className="text-xs px-2 py-1 bg-secondary rounded hover:bg-secondary/80">{"{{email}}"}</button>
                   </div>
-                  <textarea name="body" required defaultValue={editingCampaign?.message_body} className="w-full mt-1 px-3 py-2 bg-background border border-border rounded-lg" rows={4} />
+                  <textarea name="body" required defaultValue={editingCampaign?.message_body} className="w-full mt-1 px-3 py-2 bg-background border border-border rounded-lg" rows={8} />
                 </div>
                 <div>
                   <label className="text-sm font-medium">Send Timing</label>

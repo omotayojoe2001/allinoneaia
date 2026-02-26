@@ -162,6 +162,9 @@ async function logNotification(
 // Send WhatsApp via Whapi.cloud
 async function sendWhapiMessage(phone: string, message: string): Promise<boolean> {
   try {
+    // Format phone: remove + and add @s.whatsapp.net
+    const formattedPhone = phone.replace(/\+/g, '') + '@s.whatsapp.net';
+    
     const response = await fetch('https://gate.whapi.cloud/messages/text', {
       method: 'POST',
       headers: {
@@ -170,7 +173,7 @@ async function sendWhapiMessage(phone: string, message: string): Promise<boolean
       },
       body: JSON.stringify({
         typing_time: 0,
-        to: phone,
+        to: formattedPhone,
         body: message,
       }),
     });
@@ -249,6 +252,12 @@ export async function processPendingCampaigns() {
         send_via_whatsapp: campaign.send_via_whatsapp
       });
 
+      // Mark as processing immediately to prevent duplicate runs
+      await supabase
+        .from('scheduled_messages')
+        .update({ status: 'processing' })
+        .eq('id', campaign.id);
+
       let successCount = 0;
       let failCount = 0;
 
@@ -286,6 +295,9 @@ export async function processPendingCampaigns() {
           continue;
         }
 
+        const totalSubscribers = subscribers.length;
+        let processedCount = 0;
+
         for (const subscriber of subscribers) {
           let message = campaign.message_body || '';
           message = message.replace(/{{first_name}}/g, subscriber.first_name || '');
@@ -306,7 +318,23 @@ export async function processPendingCampaigns() {
             sent ? successCount++ : failCount++;
           }
 
-          await new Promise(resolve => setTimeout(resolve, 100));
+          processedCount++;
+          const progress = Math.round((processedCount / totalSubscribers) * 100);
+          
+          // Update progress
+          await supabase
+            .from('scheduled_messages')
+            .update({ 
+              metadata: { progress, processed: processedCount, total: totalSubscribers }
+            })
+            .eq('id', campaign.id);
+
+          console.log(`[Campaign Processor] Progress: ${processedCount}/${totalSubscribers} (${progress}%)`);
+
+          // Wait 25 seconds before next message (except for last one)
+          if (processedCount < totalSubscribers) {
+            await new Promise(resolve => setTimeout(resolve, 25000));
+          }
         }
       }
 

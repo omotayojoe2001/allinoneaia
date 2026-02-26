@@ -18,6 +18,7 @@ import {
   Calendar,
   Users,
   Package,
+  TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -32,9 +33,9 @@ const navItems = [
   { icon: Package, label: "Stock", path: "/business/stock" },
   { icon: Bot, label: "Chatbot Builder", path: "/chat" },
   { icon: Zap, label: "Automation", path: "/automation" },
-  { icon: Headphones, label: "Customer Service", path: "/customer" },
   { icon: Palette, label: "Content Studio", path: "/content" },
-  { icon: Share2, label: "Social Media", path: "/social" },
+  { icon: TrendingUp, label: "Growth Services", path: "/social" },
+  { icon: Share2, label: "Social Manager", path: "/social-manager" },
   { icon: Briefcase, label: "Business Tools", path: "/business" },
   { icon: Bell, label: "Reminders", path: "/reminders" },
 ];

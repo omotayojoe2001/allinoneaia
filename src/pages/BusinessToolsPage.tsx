@@ -10,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 const tools = [
   { name: "Cashbook", desc: "Income & expense tracking", icon: Wallet, link: "/business/cashbook", color: "hsl(var(--module-business))" },
   { name: "Invoice Generator", desc: "Create & send PDF invoices", icon: FileText, link: "/business/invoices", color: "hsl(var(--module-business))" },
-  { name: "Sales Dashboard", desc: "Track sales performance", icon: TrendingUp, link: "/business/sales", color: "hsl(var(--module-business))" },
   { name: "Bookkeeping", desc: "Financial records & reports", icon: BookOpen, link: "/business/bookkeeping", color: "hsl(var(--module-business))" },
   { name: "Staff Management", desc: "Employee database", icon: Users, link: "/business/staff", color: "hsl(var(--module-business))" },
   { name: "Attendance", desc: "Track staff attendance", icon: CheckSquare, link: "/business/attendance", color: "hsl(var(--module-business))" },

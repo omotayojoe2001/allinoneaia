@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Bot, Plus, Trash2, Edit, ArrowLeft, Power, PowerOff } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const WhatsAppChatbots = () => {
+  const { platform } = useParams<{ platform: string }>();
   const { user } = useAuth();
   const { toast } = useToast();
   const [bots, setBots] = useState<any[]>([]);
@@ -35,7 +36,7 @@ const WhatsAppChatbots = () => {
       .from('chatbots')
       .select('*')
       .eq('user_id', user?.id)
-      .eq('platform', 'whatsapp')
+      .eq('platform', platform || 'whatsapp')
       .order('created_at', { ascending: false });
     setBots(data || []);
   };
@@ -44,7 +45,7 @@ const WhatsAppChatbots = () => {
     e.preventDefault();
     const payload = {
       user_id: user?.id,
-      platform: 'whatsapp',
+      platform: platform || 'whatsapp',
       name: form.name,
       instructions: form.instructions,
       knowledge_base: form.knowledge_base,
@@ -130,8 +131,8 @@ const WhatsAppChatbots = () => {
 
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-foreground mb-1">WhatsApp Chatbots</h1>
-            <p className="text-sm text-muted-foreground">AI-powered chatbots for WhatsApp</p>
+            <h1 className="text-2xl font-bold text-foreground mb-1">{platform === 'telegram' ? 'Telegram' : platform === 'web' ? 'Web Widget' : 'WhatsApp'} Chatbots</h1>
+            <p className="text-sm text-muted-foreground">AI-powered chatbots for {platform === 'telegram' ? 'Telegram' : platform === 'web' ? 'your website' : 'WhatsApp'}</p>
           </div>
           <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetForm(); }}>
             <DialogTrigger asChild>

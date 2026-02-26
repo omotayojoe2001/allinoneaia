@@ -104,22 +104,26 @@ export default function StaffManagement() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const payload = {
+    const payload: any = {
       user_id: user.id,
       name: form.name,
-      email: form.email || null,
-      phone: form.phone || null,
-      position: form.position || null,
-      salary: form.salary ? parseFloat(form.salary) : null,
-      payment_date: form.payment_date || null,
       payment_cycle: form.payment_cycle,
       include_weekends: form.include_weekends,
-      late_deduction_amount: form.late_deduction_amount ? parseFloat(form.late_deduction_amount) : 0,
       auto_deduct_late: form.auto_deduct_late
     };
 
+    if (form.email) payload.email = form.email;
+    if (form.phone) payload.phone = form.phone;
+    if (form.position) payload.position = form.position;
+    if (form.salary) payload.salary = parseFloat(form.salary);
+    if (form.payment_date) payload.payment_date = form.payment_date;
+    if (form.late_deduction_amount) payload.late_deduction_amount = parseFloat(form.late_deduction_amount);
+
+    console.log('Payload:', payload);
+
     if (editId) {
-      const { error } = await supabase.from("staff").update(payload).eq("id", editId);
+      const { error, data } = await supabase.from("staff").update(payload).eq("id", editId).select();
+      console.log('Update result:', { error, data });
       if (error) {
         toast({ title: "Error", description: error.message, variant: "destructive" });
       } else {
@@ -130,7 +134,8 @@ export default function StaffManagement() {
         fetchStaff();
       }
     } else {
-      const { error } = await supabase.from("staff").insert(payload);
+      const { error, data } = await supabase.from("staff").insert(payload).select();
+      console.log('Insert result:', { error, data });
       if (error) {
         toast({ title: "Error", description: error.message, variant: "destructive" });
       } else {
@@ -657,62 +662,70 @@ export default function StaffManagement() {
             <DialogTrigger asChild>
               <Button><Plus className="w-4 h-4 mr-2" />Add Staff</Button>
             </DialogTrigger>
-            <DialogContent className="max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editId ? "Edit Staff" : "Add Staff"}</DialogTitle>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <Label>Name *</Label>
-                  <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Name *</Label>
+                    <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className="mt-1.5" />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Position</Label>
+                    <Input value={form.position} onChange={(e) => setForm({ ...form, position: e.target.value })} className="mt-1.5" />
+                  </div>
                 </div>
-                <div>
-                  <Label>Email</Label>
-                  <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Email</Label>
+                    <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="mt-1.5" />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Phone</Label>
+                    <PhoneInput value={form.phone} onChange={(phone) => setForm({ ...form, phone })} />
+                  </div>
                 </div>
-                <div>
-                  <Label>Phone</Label>
-                  <PhoneInput value={form.phone} onChange={(phone) => setForm({ ...form, phone })} />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Salary (Total Amount)</Label>
+                    <Input type="number" step="0.01" value={form.salary} onChange={(e) => setForm({ ...form, salary: e.target.value })} className="mt-1.5" />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Payment Cycle</Label>
+                    <Select value={form.payment_cycle} onValueChange={(v) => setForm({ ...form, payment_cycle: v })}>
+                      <SelectTrigger className="mt-1.5">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="daily">Daily</SelectItem>
+                        <SelectItem value="weekly">Weekly (7 days)</SelectItem>
+                        <SelectItem value="biweekly">Bi-weekly (14 days)</SelectItem>
+                        <SelectItem value="monthly">Monthly (30 days)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div>
-                  <Label>Position</Label>
-                  <Input value={form.position} onChange={(e) => setForm({ ...form, position: e.target.value })} />
-                </div>
-                <div>
-                  <Label>Salary (Total Amount)</Label>
-                  <Input type="number" step="0.01" value={form.salary} onChange={(e) => setForm({ ...form, salary: e.target.value })} />
-                </div>
-                <div>
-                  <Label>Payment Cycle</Label>
-                  <Select value={form.payment_cycle} onValueChange={(v) => setForm({ ...form, payment_cycle: v })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="daily">Daily</SelectItem>
-                      <SelectItem value="weekly">Weekly (7 days)</SelectItem>
-                      <SelectItem value="biweekly">Bi-weekly (14 days)</SelectItem>
-                      <SelectItem value="monthly">Monthly (30 days)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 bg-blue-50 p-3 rounded-lg">
                   <input type="checkbox" id="weekends" checked={form.include_weekends} onChange={(e) => setForm({ ...form, include_weekends: e.target.checked })} className="w-4 h-4" />
-                  <Label htmlFor="weekends" className="cursor-pointer">Include weekends in payment calculation</Label>
+                  <Label htmlFor="weekends" className="cursor-pointer text-sm">Include weekends in payment calculation</Label>
                 </div>
-                <div>
-                  <Label>Late Deduction Amount (per day)</Label>
-                  <Input type="number" step="0.01" value={form.late_deduction_amount} onChange={(e) => setForm({ ...form, late_deduction_amount: e.target.value })} placeholder="Amount to deduct when late" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Late Deduction Amount (per day)</Label>
+                    <Input type="number" step="0.01" value={form.late_deduction_amount} onChange={(e) => setForm({ ...form, late_deduction_amount: e.target.value })} placeholder="Amount to deduct when late" className="mt-1.5" />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Next Payment Date</Label>
+                    <Input type="date" value={form.payment_date} onChange={(e) => setForm({ ...form, payment_date: e.target.value })} className="mt-1.5" />
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 bg-blue-50 p-3 rounded-lg">
                   <input type="checkbox" id="auto_deduct" checked={form.auto_deduct_late} onChange={(e) => setForm({ ...form, auto_deduct_late: e.target.checked })} className="w-4 h-4" />
-                  <Label htmlFor="auto_deduct" className="cursor-pointer">Automatically deduct for late arrivals</Label>
+                  <Label htmlFor="auto_deduct" className="cursor-pointer text-sm">Automatically deduct for late arrivals</Label>
                 </div>
-                <div>
-                  <Label>Next Payment Date</Label>
-                  <Input type="date" value={form.payment_date} onChange={(e) => setForm({ ...form, payment_date: e.target.value })} />
-                </div>
-                <Button type="submit" className="w-full">{editId ? "Update" : "Add"} Staff</Button>
+                <Button type="submit" className="w-full mt-6">{editId ? "Update" : "Add"} Staff</Button>
               </form>
             </DialogContent>
           </Dialog>
@@ -811,8 +824,8 @@ export default function StaffManagement() {
                           <div>
                             <h3 className="font-semibold mb-2">Recent Attendance</h3>
                             <div className="space-y-1 max-h-40 overflow-y-auto">
-                              {stats.staffAttendance.slice(0, 5).map((a: any) => (
-                                <div key={a.id} className="text-sm flex justify-between">
+                              {stats.staffAttendance.slice(0, 5).map((a: any, idx: number) => (
+                                <div key={a.id || idx} className="text-sm flex justify-between">
                                   <span>{a.date}</span>
                                   <span className={`px-2 py-0.5 rounded text-xs ${
                                     a.status === "present" ? "bg-green-100 text-green-800" :
@@ -825,8 +838,8 @@ export default function StaffManagement() {
                             </div>
                             <h3 className="font-semibold mt-4 mb-2">Recent Payments</h3>
                             <div className="space-y-1 max-h-40 overflow-y-auto">
-                              {stats.staffPayments.slice(0, 5).map((p: any) => (
-                                <div key={p.id} className="text-sm flex justify-between">
+                              {stats.staffPayments.slice(0, 5).map((p: any, idx: number) => (
+                                <div key={p.id || idx} className="text-sm flex justify-between">
                                   <span>{p.month}</span>
                                   <span className={`px-2 py-0.5 rounded text-xs ${p.status === "paid" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}>
                                     {formatAmount(0).replace("0.00", "")}{parseFloat(p.amount).toFixed(2)} - {p.status}

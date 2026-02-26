@@ -24,6 +24,7 @@ import AIAgentPage from "@/pages/AIAgentPage";
 import CustomerServicePage from "@/pages/CustomerServicePage";
 import ContentStudioPage from "@/pages/ContentStudioPage";
 import SocialMediaPage from "@/pages/SocialMediaPage";
+import SocialManagerPage from "@/pages/SocialManagerPage";
 import BusinessToolsPage from "@/pages/BusinessToolsPage";
 import RemindersPage from "@/pages/RemindersPage";
 import LifeAutomationPage from "@/pages/LifeAutomationPage";
@@ -51,6 +52,7 @@ import DocumentEditor from "@/pages/content/DocumentEditor";
 import PresentationAI from "@/pages/content/PresentationAI";
 import SEOOptimizer from "@/pages/content/SEOOptimizer";
 import { ReminderScheduler } from "@/components/ReminderScheduler";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -79,43 +81,44 @@ const App = () => (
               <Route path="/pricing" element={<PricingPage />} />
               <Route path="/support" element={<SupportPage />} />
               <Route path="/fund-us" element={<FundUsPage />} />
-              <Route path="/dashboard" element={<AppLayout><Dashboard /></AppLayout>} />
-              <Route path="/ai-agent" element={<AppLayout><AIAgentPage /></AppLayout>} />
-              <Route path="/chat" element={<AppLayout><ChatPage /></AppLayout>} />
-              <Route path="/chat/:platform" element={<AppLayout><WhatsAppChatbots /></AppLayout>} />
-              <Route path="/automation" element={<AppLayout><AutomationPage /></AppLayout>} />
-              <Route path="/automation/email" element={<AppLayout><EmailAutomation /></AppLayout>} />
-              <Route path="/automation/whatsapp" element={<AppLayout><WhatsAppAutomation /></AppLayout>} />
-              <Route path="/automation/whatsapp-test" element={<AppLayout><WhatsAppTest /></AppLayout>} />
-              <Route path="/customer" element={<AppLayout><CustomerServicePage /></AppLayout>} />
-              <Route path="/content" element={<AppLayout><ContentStudioPage /></AppLayout>} />
-              <Route path="/content/grammar" element={<AppLayout><GrammarChecker /></AppLayout>} />
-              <Route path="/content/writer" element={<AppLayout><AIWriter /></AppLayout>} />
-              <Route path="/content/editor" element={<AppLayout><DocumentEditor /></AppLayout>} />
-              <Route path="/content/presentation" element={<AppLayout><PresentationAI /></AppLayout>} />
-              <Route path="/content/seo" element={<AppLayout><SEOOptimizer /></AppLayout>} />
-              <Route path="/content/voiceover" element={<AppLayout><VoiceOverAI /></AppLayout>} />
-              <Route path="/content/voiceover/library" element={<AppLayout><VoiceoverLibrary /></AppLayout>} />
-              <Route path="/social" element={<AppLayout><SocialMediaPage /></AppLayout>} />
-              <Route path="/social/growth" element={<AppLayout><GrowthServices /></AppLayout>} />
-              <Route path="/social/scheduler" element={<AppLayout><SocialScheduler /></AppLayout>} />
-              <Route path="/business" element={<AppLayout><BusinessToolsPage /></AppLayout>} />
-              <Route path="/business/sales" element={<AppLayout><SalesDashboard /></AppLayout>} />
-              <Route path="/business/cashbook" element={<AppLayout><Cashbook /></AppLayout>} />
-              <Route path="/business/invoices" element={<AppLayout><InvoiceGenerator /></AppLayout>} />
-              <Route path="/business/customers" element={<AppLayout><CustomersPage /></AppLayout>} />
-              <Route path="/business/bookkeeping" element={<AppLayout><Bookkeeping /></AppLayout>} />
-              <Route path="/business/attendance" element={<AppLayout><StaffAttendance /></AppLayout>} />
-              <Route path="/business/salary" element={<AppLayout><SalaryManagement /></AppLayout>} />
-              <Route path="/business/stock" element={<AppLayout><StockManagement /></AppLayout>} />
-              <Route path="/business/appointments" element={<AppLayout><Appointments /></AppLayout>} />
-              <Route path="/business/tasks" element={<AppLayout><Tasks /></AppLayout>} />
-              <Route path="/business/staff" element={<AppLayout><StaffManagement /></AppLayout>} />
-              <Route path="/business/reports" element={<AppLayout><SpreadsheetAI /></AppLayout>} />
-              <Route path="/reminders" element={<AppLayout><RemindersPage /></AppLayout>} />
-              <Route path="/life" element={<AppLayout><LifeAutomationPage /></AppLayout>} />
-              <Route path="/billing" element={<AppLayout><BillingPage /></AppLayout>} />
-              <Route path="/settings" element={<AppLayout><SettingsPage /></AppLayout>} />
+              <Route path="/dashboard" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
+              <Route path="/ai-agent" element={<ProtectedRoute><AppLayout><AIAgentPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/chat" element={<ProtectedRoute><AppLayout><ChatPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/chat/:platform" element={<ProtectedRoute><AppLayout><WhatsAppChatbots /></AppLayout></ProtectedRoute>} />
+              <Route path="/automation" element={<ProtectedRoute><AppLayout><AutomationPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/automation/email" element={<ProtectedRoute><AppLayout><EmailAutomation /></AppLayout></ProtectedRoute>} />
+              <Route path="/automation/whatsapp" element={<ProtectedRoute><AppLayout><WhatsAppAutomation /></AppLayout></ProtectedRoute>} />
+              <Route path="/automation/whatsapp-test" element={<ProtectedRoute><AppLayout><WhatsAppTest /></AppLayout></ProtectedRoute>} />
+              <Route path="/customer" element={<ProtectedRoute><AppLayout><CustomerServicePage /></AppLayout></ProtectedRoute>} />
+              <Route path="/content" element={<ProtectedRoute><AppLayout><ContentStudioPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/content/grammar" element={<ProtectedRoute><AppLayout><GrammarChecker /></AppLayout></ProtectedRoute>} />
+              <Route path="/content/writer" element={<ProtectedRoute><AppLayout><AIWriter /></AppLayout></ProtectedRoute>} />
+              <Route path="/content/editor" element={<ProtectedRoute><AppLayout><DocumentEditor /></AppLayout></ProtectedRoute>} />
+              <Route path="/content/presentation" element={<ProtectedRoute><AppLayout><PresentationAI /></AppLayout></ProtectedRoute>} />
+              <Route path="/content/seo" element={<ProtectedRoute><AppLayout><SEOOptimizer /></AppLayout></ProtectedRoute>} />
+              <Route path="/content/voiceover" element={<ProtectedRoute><AppLayout><VoiceOverAI /></AppLayout></ProtectedRoute>} />
+              <Route path="/content/voiceover/library" element={<ProtectedRoute><AppLayout><VoiceoverLibrary /></AppLayout></ProtectedRoute>} />
+              <Route path="/social" element={<ProtectedRoute><AppLayout><SocialMediaPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/social-manager" element={<ProtectedRoute><AppLayout><SocialManagerPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/social/growth" element={<ProtectedRoute><AppLayout><GrowthServices /></AppLayout></ProtectedRoute>} />
+              <Route path="/social/scheduler" element={<ProtectedRoute><AppLayout><SocialScheduler /></AppLayout></ProtectedRoute>} />
+              <Route path="/business" element={<ProtectedRoute><AppLayout><BusinessToolsPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/business/sales" element={<ProtectedRoute><AppLayout><SalesDashboard /></AppLayout></ProtectedRoute>} />
+              <Route path="/business/cashbook" element={<ProtectedRoute><AppLayout><Cashbook /></AppLayout></ProtectedRoute>} />
+              <Route path="/business/invoices" element={<ProtectedRoute><AppLayout><InvoiceGenerator /></AppLayout></ProtectedRoute>} />
+              <Route path="/business/customers" element={<ProtectedRoute><AppLayout><CustomersPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/business/bookkeeping" element={<ProtectedRoute><AppLayout><Bookkeeping /></AppLayout></ProtectedRoute>} />
+              <Route path="/business/attendance" element={<ProtectedRoute><AppLayout><StaffAttendance /></AppLayout></ProtectedRoute>} />
+              <Route path="/business/salary" element={<ProtectedRoute><AppLayout><SalaryManagement /></AppLayout></ProtectedRoute>} />
+              <Route path="/business/stock" element={<ProtectedRoute><AppLayout><StockManagement /></AppLayout></ProtectedRoute>} />
+              <Route path="/business/appointments" element={<ProtectedRoute><AppLayout><Appointments /></AppLayout></ProtectedRoute>} />
+              <Route path="/business/tasks" element={<ProtectedRoute><AppLayout><Tasks /></AppLayout></ProtectedRoute>} />
+              <Route path="/business/staff" element={<ProtectedRoute><AppLayout><StaffManagement /></AppLayout></ProtectedRoute>} />
+              <Route path="/business/reports" element={<ProtectedRoute><AppLayout><SpreadsheetAI /></AppLayout></ProtectedRoute>} />
+              <Route path="/reminders" element={<ProtectedRoute><AppLayout><RemindersPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/life" element={<ProtectedRoute><AppLayout><LifeAutomationPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/billing" element={<ProtectedRoute><AppLayout><BillingPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><AppLayout><SettingsPage /></AppLayout></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

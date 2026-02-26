@@ -1,37 +1,61 @@
 import { Bot, MessageCircle, Send, Globe } from "lucide-react";
 import { Link } from "react-router-dom";
-
-const platforms = [
-  { 
-    id: "whatsapp", 
-    name: "WhatsApp", 
-    icon: MessageCircle, 
-    color: "bg-green-500/10 hover:bg-green-500/20 border-green-500/20",
-    iconColor: "text-green-500",
-    description: "Build chatbots for WhatsApp Business API",
-    count: 2
-  },
-  { 
-    id: "telegram", 
-    name: "Telegram", 
-    icon: Send, 
-    color: "bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/20",
-    iconColor: "text-blue-500",
-    description: "Create Telegram bots for your channels",
-    count: 1
-  },
-  { 
-    id: "web", 
-    name: "Web Widget", 
-    icon: Globe, 
-    color: "bg-primary/10 hover:bg-primary/20 border-primary/20",
-    iconColor: "text-primary",
-    description: "Embed chat widgets on your website",
-    count: 1
-  },
-];
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 
 const ChatPage = () => {
+  const { user } = useAuth();
+  const [whatsappCount, setWhatsappCount] = useState(0);
+  const [telegramCount, setTelegramCount] = useState(0);
+  const [webCount, setWebCount] = useState(0);
+
+  useEffect(() => {
+    if (user) {
+      loadCounts();
+    }
+  }, [user]);
+
+  const loadCounts = async () => {
+    const [whatsapp, telegram, web] = await Promise.all([
+      supabase.from('chatbots').select('id', { count: 'exact' }).eq('user_id', user?.id).eq('platform', 'whatsapp'),
+      supabase.from('chatbots').select('id', { count: 'exact' }).eq('user_id', user?.id).eq('platform', 'telegram'),
+      supabase.from('chatbots').select('id', { count: 'exact' }).eq('user_id', user?.id).eq('platform', 'web')
+    ]);
+    setWhatsappCount(whatsapp.count || 0);
+    setTelegramCount(telegram.count || 0);
+    setWebCount(web.count || 0);
+  };
+
+  const platforms = [
+    { 
+      id: "whatsapp", 
+      name: "WhatsApp", 
+      icon: MessageCircle, 
+      color: "bg-green-500/10 hover:bg-green-500/20 border-green-500/20",
+      iconColor: "text-green-500",
+      description: "Build chatbots for WhatsApp Business API",
+      count: whatsappCount
+    },
+    { 
+      id: "telegram", 
+      name: "Telegram", 
+      icon: Send, 
+      color: "bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/20",
+      iconColor: "text-blue-500",
+      description: "Create Telegram bots for your channels",
+      count: telegramCount
+    },
+    { 
+      id: "web", 
+      name: "Web Widget", 
+      icon: Globe, 
+      color: "bg-primary/10 hover:bg-primary/20 border-primary/20",
+      iconColor: "text-primary",
+      description: "Embed chat widgets on your website",
+      count: webCount
+    },
+  ];
   return (
     <div className="flex-1 overflow-y-auto px-6 py-8">
       <div className="max-w-5xl mx-auto">

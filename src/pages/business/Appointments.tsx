@@ -132,15 +132,15 @@ export default function Appointments() {
           <DialogTrigger asChild>
             <Button><Plus className="w-4 h-4 mr-2" />New Appointment</Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editId ? "Edit Appointment" : "New Appointment"}</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <Label>Customer</Label>
+                <Label className="text-sm font-medium">Customer</Label>
                 <Select value={form.customer_id} onValueChange={(v) => setForm({ ...form, customer_id: v })}>
-                  <SelectTrigger>
+                  <SelectTrigger className="mt-1.5">
                     <SelectValue placeholder="Select customer (optional)" />
                   </SelectTrigger>
                   <SelectContent>
@@ -149,25 +149,27 @@ export default function Appointments() {
                 </Select>
               </div>
               <div>
-                <Label>Title *</Label>
-                <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
+                <Label className="text-sm font-medium">Title *</Label>
+                <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required className="mt-1.5" />
               </div>
               <div>
-                <Label>Description</Label>
-                <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+                <Label className="text-sm font-medium">Description</Label>
+                <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={4} className="mt-1.5" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Date *</Label>
+                  <Input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} required className="mt-1.5" />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Time *</Label>
+                  <Input type="time" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} required className="mt-1.5" />
+                </div>
               </div>
               <div>
-                <Label>Date *</Label>
-                <Input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} required />
-              </div>
-              <div>
-                <Label>Time *</Label>
-                <Input type="time" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} required />
-              </div>
-              <div>
-                <Label>Status</Label>
+                <Label className="text-sm font-medium">Status</Label>
                 <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
-                  <SelectTrigger>
+                  <SelectTrigger className="mt-1.5">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -177,7 +179,7 @@ export default function Appointments() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button type="submit" className="w-full">{editId ? "Update" : "Create"} Appointment</Button>
+              <Button type="submit" className="w-full mt-6">{editId ? "Update" : "Create"} Appointment</Button>
             </form>
           </DialogContent>
         </Dialog>
