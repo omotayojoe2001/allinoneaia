@@ -37,7 +37,7 @@ export default function StaffManagement() {
   const [staffSearch, setStaffSearch] = useState("");
   const [attendanceViewOpen, setAttendanceViewOpen] = useState(false);
   const [paymentsViewOpen, setPaymentsViewOpen] = useState(false);
-  const [attendanceFilter, setAttendanceFilter] = useState<"all" | "today" | "week" | "month" | "custom">("all");
+  const [attendanceFilter, setAttendanceFilter] = useState<"all" | "today" | "week" | "month" | "custom">("today");
   const [attendanceStartDate, setAttendanceStartDate] = useState("");
   const [attendanceEndDate, setAttendanceEndDate] = useState("");
   const [attendanceStaffFilter, setAttendanceStaffFilter] = useState("");
@@ -300,6 +300,10 @@ export default function StaffManagement() {
         if (attendanceEndDate && a.date > attendanceEndDate) return false;
       }
       return true;
+    }).sort((a, b) => {
+      const dateCompare = b.date.localeCompare(a.date);
+      if (dateCompare !== 0) return dateCompare;
+      return (b.check_in || '').localeCompare(a.check_in || '');
     });
   };
 
@@ -460,7 +464,7 @@ export default function StaffManagement() {
                         const staffMember = staff.find(s => s.id === record.staff_id);
                         return (
                           <tr key={record.id}>
-                            <td className="px-4 py-2 text-sm text-foreground">{staffMember?.name || "N/A"}</td>
+                            <td className="px-4 py-2 text-sm text-foreground">{staffMember?.name || "Unknown Staff"}</td>
                             <td className="px-4 py-2 text-sm text-foreground">{record.date}</td>
                             <td className="px-4 py-2 text-sm text-foreground">{record.check_in || "N/A"}</td>
                             <td className="px-4 py-2 text-sm text-foreground">{record.check_out || "N/A"}</td>
