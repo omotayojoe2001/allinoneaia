@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
+import { PageAIAgent } from "@/components/PageAIAgent";
+import { pageAgentConfigs } from "@/lib/page-agent-configs";
 
 const AutomationPage = () => {
   const { user } = useAuth();
@@ -46,6 +48,7 @@ const AutomationPage = () => {
   ];
   return (
     <div className="flex-1 overflow-y-auto px-6 py-8">
+      <PageAIAgent {...pageAgentConfigs.automation} />
       <div className="max-w-5xl mx-auto">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2 mb-2">

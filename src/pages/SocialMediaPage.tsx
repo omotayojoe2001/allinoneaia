@@ -1,9 +1,12 @@
 import { TrendingUp, ShoppingCart, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { PageAIAgent } from "@/components/PageAIAgent";
+import { pageAgentConfigs } from "@/lib/page-agent-configs";
 
 const SocialMediaPage = () => {
   return (
     <div className="flex-1 overflow-y-auto px-6 py-8">
+      <PageAIAgent {...pageAgentConfigs.growth} />
       <div className="max-w-5xl mx-auto">
         <div className="mb-6">
           <h1 className="text-xl font-semibold text-foreground flex items-center gap-2 mb-1">

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Bot,
@@ -19,6 +19,7 @@ import {
   Users,
   Package,
   TrendingUp,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -48,6 +49,13 @@ const bottomItems = [
 const AppSidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.clear();
+    sessionStorage.clear();
+    navigate("/login");
+  };
 
   return (
     <motion.aside
@@ -136,6 +144,20 @@ const AppSidebar = () => {
             </AnimatePresence>
           </Link>
         ))}
+
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground hover:bg-sidebar-accent transition-colors w-full"
+        >
+          <LogOut className="w-5 h-5 flex-shrink-0" />
+          <AnimatePresence>
+            {!collapsed && (
+              <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                Logout
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </button>
 
         <button
           onClick={() => setCollapsed(!collapsed)}

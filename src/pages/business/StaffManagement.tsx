@@ -367,23 +367,23 @@ export default function StaffManagement() {
       </div>
 
       {activeTab === "list" && (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Name</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Email</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Phone</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Role</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {staffList.map((member) => (
                 <tr key={member.id}>
-                  <td className="px-4 py-3 font-medium">{member.name}</td>
-                  <td className="px-4 py-3">{member.email || "N/A"}</td>
-                  <td className="px-4 py-3">{member.phone || "N/A"}</td>
-                  <td className="px-4 py-3">{member.role}</td>
+                  <td className="px-4 py-3 font-medium text-foreground">{member.name}</td>
+                  <td className="px-4 py-3 text-foreground">{member.email || "N/A"}</td>
+                  <td className="px-4 py-3 text-foreground">{member.phone || "N/A"}</td>
+                  <td className="px-4 py-3 text-foreground">{member.role}</td>
                 </tr>
               ))}
             </tbody>
@@ -446,24 +446,24 @@ export default function StaffManagement() {
                 )}
                 <div className="border rounded-lg overflow-hidden">
                   <table className="w-full">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-gray-50 dark:bg-gray-700">
                       <tr>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Staff</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Date</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Check In</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Check Out</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Status</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Staff</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Date</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Check In</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Check Out</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y">
+                    <tbody className="divide-y dark:divide-gray-700">
                       {getFilteredAttendance().map((record) => {
                         const staffMember = staff.find(s => s.id === record.staff_id);
                         return (
                           <tr key={record.id}>
-                            <td className="px-4 py-2 text-sm">{staffMember?.name || "N/A"}</td>
-                            <td className="px-4 py-2 text-sm">{record.date}</td>
-                            <td className="px-4 py-2 text-sm">{record.check_in || "N/A"}</td>
-                            <td className="px-4 py-2 text-sm">{record.check_out || "N/A"}</td>
+                            <td className="px-4 py-2 text-sm text-foreground">{staffMember?.name || "N/A"}</td>
+                            <td className="px-4 py-2 text-sm text-foreground">{record.date}</td>
+                            <td className="px-4 py-2 text-sm text-foreground">{record.check_in || "N/A"}</td>
+                            <td className="px-4 py-2 text-sm text-foreground">{record.check_out || "N/A"}</td>
                             <td className="px-4 py-2 text-sm">
                               <span className={`px-2 py-1 rounded text-xs ${
                                 record.status === "present" ? "bg-green-100 text-green-800" :
@@ -520,29 +520,29 @@ export default function StaffManagement() {
                 </div>
                 <div className="border rounded-lg overflow-hidden">
                   <table className="w-full">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-gray-50 dark:bg-gray-700">
                       <tr>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Staff</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Amount</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Month</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Status</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Paid Date</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Staff</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Amount</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Month</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Status</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Paid Date</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y">
+                    <tbody className="divide-y dark:divide-gray-700">
                       {getFilteredPayments().map((payment) => {
                         const staffMember = staff.find(s => s.id === payment.staff_id);
                         return (
                           <tr key={payment.id}>
-                            <td className="px-4 py-2 text-sm">{staffMember?.name || "N/A"}</td>
-                            <td className="px-4 py-2 text-sm font-semibold">{formatAmount(0).replace("0.00", "")}{parseFloat(payment.amount).toFixed(2)}</td>
-                            <td className="px-4 py-2 text-sm">{payment.month}</td>
+                            <td className="px-4 py-2 text-sm text-foreground">{staffMember?.name || "N/A"}</td>
+                            <td className="px-4 py-2 text-sm font-semibold text-foreground">{formatAmount(0).replace("0.00", "")}{parseFloat(payment.amount).toFixed(2)}</td>
+                            <td className="px-4 py-2 text-sm text-foreground">{payment.month}</td>
                             <td className="px-4 py-2 text-sm">
                               <span className={`px-2 py-1 rounded text-xs ${payment.status === "paid" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}>
                                 {payment.status}
                               </span>
                             </td>
-                            <td className="px-4 py-2 text-sm">{payment.paid_date || "N/A"}</td>
+                            <td className="px-4 py-2 text-sm text-foreground">{payment.paid_date || "N/A"}</td>
                           </tr>
                         );
                       })}
@@ -733,15 +733,15 @@ export default function StaffManagement() {
       )}
 
       {activeTab === "staff" && (
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Position</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Salary</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Days Worked</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Name</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Position</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Salary</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Days Worked</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                 <div className="flex items-center gap-1">
                   Payment Due
                   <TooltipProvider>
@@ -756,7 +756,7 @@ export default function StaffManagement() {
                   </TooltipProvider>
                 </div>
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                 <div className="flex items-center gap-1">
                   Pending
                   <TooltipProvider>
@@ -771,28 +771,28 @@ export default function StaffManagement() {
                   </TooltipProvider>
                 </div>
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {staff.map((member) => {
               const stats = getStaffStats(member.id);
               const payment = calculatePaymentDue(member);
               const isExpanded = expandedStaff === member.id;
               return (
                 <>
-                  <tr key={member.id} className="hover:bg-gray-50">
+                  <tr key={member.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-4 py-3">
-                      <button onClick={() => setExpandedStaff(isExpanded ? null : member.id)} className="flex items-center gap-2 font-medium">
+                      <button onClick={() => setExpandedStaff(isExpanded ? null : member.id)} className="flex items-center gap-2 font-medium text-foreground">
                         {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                         {member.name}
                       </button>
                     </td>
-                    <td className="px-4 py-3">{member.position || "N/A"}</td>
-                    <td className="px-4 py-3 font-semibold">{formatAmount(0).replace("0.00", "")}{member.salary ? parseFloat(member.salary).toFixed(2) : "0.00"}</td>
-                    <td className="px-4 py-3 text-green-600">{stats.daysPresent}</td>
-                    <td className="px-4 py-3 font-semibold text-blue-600">{formatAmount(0).replace("0.00", "")}{payment.paymentDue.toFixed(2)}</td>
-                    <td className="px-4 py-3 text-yellow-600">{formatAmount(0).replace("0.00", "")}{stats.totalPending.toFixed(2)}</td>
+                    <td className="px-4 py-3 text-foreground">{member.position || "N/A"}</td>
+                    <td className="px-4 py-3 font-semibold text-foreground">{formatAmount(0).replace("0.00", "")}{member.salary ? parseFloat(member.salary).toFixed(2) : "0.00"}</td>
+                    <td className="px-4 py-3 text-green-600 dark:text-green-400">{stats.daysPresent}</td>
+                    <td className="px-4 py-3 font-semibold text-blue-600 dark:text-blue-400">{formatAmount(0).replace("0.00", "")}{payment.paymentDue.toFixed(2)}</td>
+                    <td className="px-4 py-3 text-yellow-600 dark:text-yellow-400">{formatAmount(0).replace("0.00", "")}{stats.totalPending.toFixed(2)}</td>
                     <td className="px-4 py-3 flex gap-2">
                       <Button variant="ghost" size="sm" onClick={() => handleEdit(member)}>
                         <Edit className="w-4 h-4 text-blue-500" />
@@ -804,28 +804,28 @@ export default function StaffManagement() {
                   </tr>
                   {isExpanded && (
                     <tr>
-                      <td colSpan={7} className="px-4 py-4 bg-gray-50">
+                      <td colSpan={7} className="px-4 py-4 bg-gray-50 dark:bg-gray-700">
                         <div className="grid grid-cols-2 gap-6">
                           <div>
-                            <h3 className="font-semibold mb-2">Contact Info</h3>
-                            <p className="text-sm">Email: {member.email || "N/A"}</p>
-                            <p className="text-sm">Phone: {member.phone || "N/A"}</p>
-                            <p className="text-sm">Next Payment: {member.payment_date ? new Date(member.payment_date).toLocaleDateString() : "N/A"}</p>
-                            <h3 className="font-semibold mt-4 mb-2">Payment Calculation</h3>
-                            <p className="text-sm">Cycle: {member.payment_cycle || "monthly"} | Weekends: {member.include_weekends ? "Included" : "Excluded"}</p>
-                            <p className="text-sm">Daily Rate: {formatAmount(0).replace("0.00", "")}{payment.dailyRate.toFixed(2)} | Working Days: {payment.workingDays}</p>
-                            <p className="text-sm">Earned: {formatAmount(0).replace("0.00", "")}{payment.earnedAmount.toFixed(2)} | Deductions: {formatAmount(0).replace("0.00", "")}{payment.deductions.toFixed(2)}</p>
-                            <p className="text-sm font-semibold text-blue-600">Payment Due: {formatAmount(0).replace("0.00", "")}{payment.paymentDue.toFixed(2)}</p>
-                            <h3 className="font-semibold mt-4 mb-2">Attendance Summary</h3>
-                            <p className="text-sm">Present: {stats.daysPresent} | Absent: {stats.daysAbsent} | Late: {stats.daysLate}</p>
-                            <h3 className="font-semibold mt-4 mb-2">Salary Summary</h3>
-                            <p className="text-sm">Pending: {formatAmount(0).replace("0.00", "")}{stats.totalPending.toFixed(2)} | Paid: {formatAmount(0).replace("0.00", "")}{stats.totalPaid.toFixed(2)}</p>
+                            <h3 className="font-semibold mb-2 text-foreground">Contact Info</h3>
+                            <p className="text-sm text-foreground">Email: {member.email || "N/A"}</p>
+                            <p className="text-sm text-foreground">Phone: {member.phone || "N/A"}</p>
+                            <p className="text-sm text-foreground">Next Payment: {member.payment_date ? new Date(member.payment_date).toLocaleDateString() : "N/A"}</p>
+                            <h3 className="font-semibold mt-4 mb-2 text-foreground">Payment Calculation</h3>
+                            <p className="text-sm text-foreground">Cycle: {member.payment_cycle || "monthly"} | Weekends: {member.include_weekends ? "Included" : "Excluded"}</p>
+                            <p className="text-sm text-foreground">Daily Rate: {formatAmount(0).replace("0.00", "")}{payment.dailyRate.toFixed(2)} | Working Days: {payment.workingDays}</p>
+                            <p className="text-sm text-foreground">Earned: {formatAmount(0).replace("0.00", "")}{payment.earnedAmount.toFixed(2)} | Deductions: {formatAmount(0).replace("0.00", "")}{payment.deductions.toFixed(2)}</p>
+                            <p className="text-sm font-semibold text-blue-600 dark:text-blue-400">Payment Due: {formatAmount(0).replace("0.00", "")}{payment.paymentDue.toFixed(2)}</p>
+                            <h3 className="font-semibold mt-4 mb-2 text-foreground">Attendance Summary</h3>
+                            <p className="text-sm text-foreground">Present: {stats.daysPresent} | Absent: {stats.daysAbsent} | Late: {stats.daysLate}</p>
+                            <h3 className="font-semibold mt-4 mb-2 text-foreground">Salary Summary</h3>
+                            <p className="text-sm text-foreground">Pending: {formatAmount(0).replace("0.00", "")}{stats.totalPending.toFixed(2)} | Paid: {formatAmount(0).replace("0.00", "")}{stats.totalPaid.toFixed(2)}</p>
                           </div>
                           <div>
-                            <h3 className="font-semibold mb-2">Recent Attendance</h3>
+                            <h3 className="font-semibold mb-2 text-foreground">Recent Attendance</h3>
                             <div className="space-y-1 max-h-40 overflow-y-auto">
                               {stats.staffAttendance.slice(0, 5).map((a: any, idx: number) => (
-                                <div key={a.id || idx} className="text-sm flex justify-between">
+                                <div key={a.id || idx} className="text-sm flex justify-between text-foreground">
                                   <span>{a.date}</span>
                                   <span className={`px-2 py-0.5 rounded text-xs ${
                                     a.status === "present" ? "bg-green-100 text-green-800" :
@@ -836,10 +836,10 @@ export default function StaffManagement() {
                                 </div>
                               ))}
                             </div>
-                            <h3 className="font-semibold mt-4 mb-2">Recent Payments</h3>
+                            <h3 className="font-semibold mt-4 mb-2 text-foreground">Recent Payments</h3>
                             <div className="space-y-1 max-h-40 overflow-y-auto">
                               {stats.staffPayments.slice(0, 5).map((p: any, idx: number) => (
-                                <div key={p.id || idx} className="text-sm flex justify-between">
+                                <div key={p.id || idx} className="text-sm flex justify-between text-foreground">
                                   <span>{p.month}</span>
                                   <span className={`px-2 py-0.5 rounded text-xs ${p.status === "paid" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}>
                                     {formatAmount(0).replace("0.00", "")}{parseFloat(p.amount).toFixed(2)} - {p.status}

@@ -9,6 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, Edit, ArrowLeft, Upload, CheckCircle, Bell } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { PageAIAgent } from "@/components/PageAIAgent";
+import { pageAgentConfigs } from "@/lib/page-agent-configs";
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<any[]>([]);
@@ -183,6 +185,7 @@ export default function CustomersPage() {
 
   return (
     <div className="flex-1 overflow-y-auto px-6 py-8">
+      <PageAIAgent {...pageAgentConfigs.customers} />
       <div className="max-w-6xl mx-auto">
       <Link to="/business" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
         <ArrowLeft className="w-4 h-4" /> Back

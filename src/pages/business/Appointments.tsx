@@ -11,6 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, Edit, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
+import { PageAIAgent } from "@/components/PageAIAgent";
+import { pageAgentConfigs } from "@/lib/page-agent-configs";
 
 export default function Appointments() {
   const [appointments, setAppointments] = useState<any[]>([]);
@@ -120,6 +122,7 @@ export default function Appointments() {
 
   return (
     <div className="flex-1 overflow-y-auto px-6 py-8">
+      <PageAIAgent {...pageAgentConfigs.appointments} />
       <div className="max-w-6xl mx-auto">
       <Link to="/business" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
         <ArrowLeft className="w-4 h-4" /> Back
@@ -186,25 +189,25 @@ export default function Appointments() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Title</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Customer</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Date</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Time</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Status</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {appointments.map((apt) => (
               <tr key={apt.id}>
-                <td className="px-4 py-3 font-medium">{apt.title}</td>
-                <td className="px-4 py-3">{apt.customers?.name || "N/A"}</td>
-                <td className="px-4 py-3">{apt.date}</td>
-                <td className="px-4 py-3">{apt.time}</td>
+                <td className="px-4 py-3 font-medium text-foreground">{apt.title}</td>
+                <td className="px-4 py-3 text-foreground">{apt.customers?.name || "N/A"}</td>
+                <td className="px-4 py-3 text-foreground">{apt.date}</td>
+                <td className="px-4 py-3 text-foreground">{apt.time}</td>
                 <td className="px-4 py-3">
                   <span className={`px-2 py-1 rounded text-xs ${
                     apt.status === "completed" ? "bg-green-100 text-green-800" :

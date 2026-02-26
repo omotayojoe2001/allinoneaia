@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Bell, Plus, Settings, Calendar, AlertCircle, CheckCircle, Clock, Trash2, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
+import { PageAIAgent } from '@/components/PageAIAgent';
+import { pageAgentConfigs } from '@/lib/page-agent-configs';
 
 interface Reminder {
   id: string;
@@ -134,6 +136,7 @@ const RemindersPage = () => {
 
   return (
     <div className="flex-1 overflow-y-auto px-6 py-8">
+      <PageAIAgent {...pageAgentConfigs.reminders} />
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>

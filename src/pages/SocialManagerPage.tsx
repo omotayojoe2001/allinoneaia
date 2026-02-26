@@ -1,8 +1,11 @@
 import { Share2, Clock } from "lucide-react";
+import { PageAIAgent } from "@/components/PageAIAgent";
+import { pageAgentConfigs } from "@/lib/page-agent-configs";
 
 export default function SocialManagerPage() {
   return (
     <div className="flex-1 overflow-y-auto flex items-center justify-center px-6 py-8">
+      <PageAIAgent {...pageAgentConfigs.social} />
       <div className="text-center max-w-md">
         <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
           <Share2 className="w-10 h-10 text-primary" />

@@ -6,6 +6,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PageAIAgent } from "@/components/PageAIAgent";
+import { pageAgentConfigs } from "@/lib/page-agent-configs";
 
 const tools = [
   { name: "Cashbook", desc: "Income & expense tracking", icon: Wallet, link: "/business/cashbook", color: "hsl(var(--module-business))" },
@@ -100,6 +102,7 @@ const BusinessToolsPage = () => {
 
   return (
   <div className="flex-1 overflow-y-auto px-6 py-8">
+    <PageAIAgent {...pageAgentConfigs.business} />
     <div className="max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>

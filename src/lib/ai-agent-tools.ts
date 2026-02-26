@@ -1107,7 +1107,7 @@ export async function executeTool(toolName: string, args: any, userId: string) {
       return await getInvoices(userId, args.status, args.limit || 10);
     
     case 'get_stock_levels':
-      return await getStockLevels(userId, args.low_stock_only);
+      return await getStockLevels(userId, args?.low_stock_only);
     
     case 'get_appointments':
       return await getAppointments(userId, args.days_ahead || 7);
@@ -1379,12 +1379,11 @@ async function getInvoices(userId: string, status?: string, limit: number = 10) 
 }
 
 async function getStockLevels(userId: string, lowStockOnly?: boolean) {
-  let query = supabase
+  const { data, error } = await supabase
     .from('stock')
     .select('product_name, quantity, reorder_level, sku, price')
     .eq('user_id', userId);
 
-  const { data, error } = await query;
   if (error) return { error: error.message };
   
   if (lowStockOnly) {
@@ -1392,7 +1391,7 @@ async function getStockLevels(userId: string, lowStockOnly?: boolean) {
     return { items: lowStock, low_stock_count: lowStock?.length || 0 };
   }
 
-  return { items: data };
+  return { items: data, total_items: data?.length || 0 };
 }
 
 async function getAppointments(userId: string, daysAhead: number) {

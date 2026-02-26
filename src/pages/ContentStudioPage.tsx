@@ -1,6 +1,8 @@
 import { Palette, FileText, Image, Video, Youtube, Mic, Plus, ArrowRight, FileEdit, CheckCircle2, Presentation, TrendingUp, Cpu, VideoIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { PageAIAgent } from "@/components/PageAIAgent";
+import { pageAgentConfigs } from "@/lib/page-agent-configs";
 
 const tools = [
   { name: "AI Writer", desc: "Generate blog posts, captions, ad copy, scripts, and more with AI", icon: FileText, count: "8 created today", action: "Start Writing", available: true },
@@ -43,6 +45,7 @@ const ContentStudioPage = () => {
 
   return (
   <div className="flex-1 overflow-y-auto px-6 py-8">
+    <PageAIAgent {...pageAgentConfigs.content} />
     <div className="max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>

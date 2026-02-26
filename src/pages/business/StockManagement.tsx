@@ -11,6 +11,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, ArrowLeft, Package, TrendingUp, AlertTriangle, ShoppingCart, Download, Search, Filter, HelpCircle, Calendar, Folder } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { PageAIAgent } from "@/components/PageAIAgent";
+import { pageAgentConfigs } from "@/lib/page-agent-configs";
 
 export default function StockManagement() {
   const [activeTab, setActiveTab] = useState<"dashboard" | "groups" | "products" | "sales" | "reports">("dashboard");
@@ -243,6 +245,7 @@ export default function StockManagement() {
   return (
     <TooltipProvider>
     <div className="flex-1 overflow-y-auto px-6 py-8">
+      <PageAIAgent {...pageAgentConfigs.stock} />
       <div className="max-w-7xl mx-auto">
         <Link to="/business" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
           <ArrowLeft className="w-4 h-4" /> Back
@@ -313,18 +316,18 @@ export default function StockManagement() {
             </div>
 
             <div className="grid grid-cols-3 gap-4">
-              <div className="bg-white p-4 rounded-lg border">
-                <p className="text-sm text-gray-600 mb-1">Today's Sales</p>
-                <p className="text-xl font-bold">{currency}{todayRevenue.toFixed(2)}</p>
-                <p className="text-xs text-gray-500">{todaySales.length} transactions</p>
+              <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Today's Sales</p>
+                <p className="text-xl font-bold text-foreground">{currency}{todayRevenue.toFixed(2)}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{todaySales.length} transactions</p>
               </div>
-              <div className="bg-white p-4 rounded-lg border">
-                <p className="text-sm text-gray-600 mb-1">This Month</p>
-                <p className="text-xl font-bold">{currency}{monthRevenue.toFixed(2)}</p>
-                <p className="text-xs text-gray-500">{monthSales.length} transactions</p>
+              <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">This Month</p>
+                <p className="text-xl font-bold text-foreground">{currency}{monthRevenue.toFixed(2)}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{monthSales.length} transactions</p>
               </div>
-              <div className="bg-white p-4 rounded-lg border">
-                <p className="text-sm text-gray-600 mb-1">Total Profit</p>
+              <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Profit</p>
                 <p className="text-xl font-bold text-green-600">{currency}{totalProfit.toFixed(2)}</p>
               </div>
             </div>
@@ -351,8 +354,8 @@ export default function StockManagement() {
               </div>
             )}
 
-            <div className="bg-white border rounded-lg p-4">
-              <h3 className="font-semibold mb-3">Recent Activities</h3>
+            <div className="bg-white dark:bg-gray-800 border rounded-lg p-4">
+              <h3 className="font-semibold text-foreground mb-3">Recent Activities</h3>
               <div className="space-y-2">
                 {recentActivities.map((activity, i) => (
                   <div key={i} className="flex items-center justify-between py-2 border-b last:border-0">
@@ -733,8 +736,8 @@ export default function StockManagement() {
         {activeTab === "reports" && (
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white p-6 rounded-lg border">
-                <h3 className="font-semibold mb-4">Sales Performance</h3>
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border">
+                <h3 className="font-semibold text-foreground mb-4">Sales Performance</h3>
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Total Sales:</span>
@@ -750,8 +753,8 @@ export default function StockManagement() {
                   </div>
                 </div>
               </div>
-              <div className="bg-white p-6 rounded-lg border">
-                <h3 className="font-semibold mb-4">Inventory Status</h3>
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border">
+                <h3 className="font-semibold text-foreground mb-4">Inventory Status</h3>
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Total Products:</span>

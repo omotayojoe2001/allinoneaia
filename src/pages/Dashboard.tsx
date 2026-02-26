@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import ThemeToggle from "@/components/ThemeToggle";
+import { PageAIAgent } from "@/components/PageAIAgent";
+import { pageAgentConfigs } from "@/lib/page-agent-configs";
+import { QuickCheckIn } from "@/components/QuickCheckIn";
 import {
   MessageSquare,
   Zap,
@@ -157,6 +160,7 @@ const Dashboard = () => {
 
   return (
     <div className="flex-1 overflow-y-auto">
+      <PageAIAgent {...pageAgentConfigs.dashboard} />
       {/* Overdue Reminders Modal */}
       {showReminderModal && overdueReminders.length > 0 && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -318,8 +322,12 @@ const Dashboard = () => {
             </div>
           </motion.div>
 
-          {/* Quick Stats */}
-          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="glass-card rounded-lg p-5">
+          {/* Quick Check-In & Business Overview */}
+          <div className="space-y-6">
+            <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.23 }}>
+              <QuickCheckIn />
+            </motion.div>
+            <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="glass-card rounded-lg p-5">
             <h2 className="text-foreground font-semibold flex items-center gap-2 mb-4">
               <TrendingUp className="w-4 h-4 text-primary" />
               Business Overview
@@ -363,6 +371,7 @@ const Dashboard = () => {
               </div>
             </div>
           </motion.div>
+          </div>
         </div>
 
         {/* Bottom row */}
