@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { useCurrency } from "@/contexts/CurrencyContext";
-import { DollarSign, FileText, Calendar, Download } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DollarSign, FileText, Calendar, Download, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
@@ -16,6 +15,7 @@ const PayrollManagement = () => {
   const [remittances, setRemittances] = useState<any[]>([]);
   const [currentMonth] = useState(new Date().getMonth() + 1);
   const [currentYear] = useState(new Date().getFullYear());
+  const [activeView, setActiveView] = useState("runs");
 
   useEffect(() => {
     if (user) {
@@ -206,14 +206,28 @@ const PayrollManagement = () => {
           </Button>
         </div>
 
-        <Tabs defaultValue="runs">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="runs">Payroll Runs</TabsTrigger>
-            <TabsTrigger value="payslips">Payslips</TabsTrigger>
-            <TabsTrigger value="remittances">Remittances</TabsTrigger>
-          </TabsList>
+        <div className="mb-4 flex gap-1">
+          {[
+            { id: "runs", label: "Payroll Runs" },
+            { id: "payslips", label: "Payslips" },
+            { id: "remittances", label: "Remittances" },
+          ].map(view => (
+            <button
+              key={view.id}
+              onClick={() => setActiveView(view.id)}
+              className={`px-4 py-2 text-sm font-medium rounded transition-all flex items-center gap-1 ${
+                activeView === view.id
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+              }`}
+            >
+              {view.label}
+              {activeView === view.id && <ChevronRight className="w-3 h-3" />}
+            </button>
+          ))}
+        </div>
 
-          <TabsContent value="runs">
+        {activeView === "runs" && (
             <div className="glass-card rounded-lg p-6">
               <h2 className="text-lg font-semibold text-foreground mb-4">Payroll History</h2>
               <div className="overflow-x-auto">
@@ -266,9 +280,9 @@ const PayrollManagement = () => {
                 </table>
               </div>
             </div>
-          </TabsContent>
+        )}
 
-          <TabsContent value="payslips">
+        {activeView === "payslips" && (
             <div className="glass-card rounded-lg p-6">
               <h2 className="text-lg font-semibold text-foreground mb-4">Generated Payslips</h2>
               {payslips.length > 0 ? (
@@ -312,9 +326,9 @@ const PayrollManagement = () => {
                 </div>
               )}
             </div>
-          </TabsContent>
+        )}
 
-          <TabsContent value="remittances">
+        {activeView === "remittances" && (
             <div className="glass-card rounded-lg p-6">
               <h2 className="text-lg font-semibold text-foreground mb-4">Tax & Pension Remittances</h2>
               <div className="overflow-x-auto">
@@ -352,8 +366,7 @@ const PayrollManagement = () => {
                 </table>
               </div>
             </div>
-          </TabsContent>
-        </Tabs>
+        )}
       </div>
     </div>
   );

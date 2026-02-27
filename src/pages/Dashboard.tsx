@@ -17,6 +17,14 @@ export default function Dashboard() {
   const [topCustomers, setTopCustomers] = useState<any[]>([]);
   const [lowStockItems, setLowStockItems] = useState<any[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
+  const [userName, setUserName] = useState('');
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  };
 
   useEffect(() => {
     if (user) {
@@ -28,6 +36,15 @@ export default function Dashboard() {
 
   const loadDashboard = async () => {
     if (!user) return;
+
+    // Fetch user profile
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', user.id)
+      .single();
+    
+    setUserName(profile?.full_name || user.email?.split('@')[0] || 'User');
 
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -141,10 +158,10 @@ export default function Dashboard() {
   return (
     <div className="flex-1 overflow-y-auto bg-background p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header with AI Suggestions */}
+        {/* Header with Greeting */}
         <div className="flex justify-between items-start gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Dashboard</h1>
+            <h1 className="text-3xl font-bold">{getGreeting()}, {userName}</h1>
             <p className="text-muted-foreground">Real-time business insights</p>
           </div>
           <div className="text-right">

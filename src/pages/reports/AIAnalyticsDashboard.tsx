@@ -2,10 +2,9 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { useCurrency } from "@/contexts/CurrencyContext";
-import { Brain, TrendingUp, AlertTriangle, MessageSquare, Sparkles } from "lucide-react";
+import { Brain, TrendingUp, AlertTriangle, MessageSquare, Sparkles, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 
 const AIAnalyticsDashboard = () => {
@@ -18,6 +17,7 @@ const AIAnalyticsDashboard = () => {
   const [forecasts, setForecasts] = useState<any[]>([]);
   const [riskAlerts, setRiskAlerts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [activeView, setActiveView] = useState("query");
 
   useEffect(() => {
     if (user) {
@@ -336,13 +336,27 @@ const AIAnalyticsDashboard = () => {
           </div>
         )}
 
-        <Tabs defaultValue="query">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="query">Ask AI</TabsTrigger>
-            <TabsTrigger value="history">Query History</TabsTrigger>
-          </TabsList>
+        <div className="mb-4 flex gap-1">
+          {[
+            { id: "query", label: "Ask AI" },
+            { id: "history", label: "Query History" },
+          ].map(view => (
+            <button
+              key={view.id}
+              onClick={() => setActiveView(view.id)}
+              className={`px-4 py-2 text-sm font-medium rounded transition-all flex items-center gap-1 ${
+                activeView === view.id
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+              }`}
+            >
+              {view.label}
+              {activeView === view.id && <ChevronRight className="w-3 h-3" />}
+            </button>
+          ))}
+        </div>
 
-          <TabsContent value="query">
+        {activeView === "query" && (
             <div className="glass-card rounded-lg p-6">
               <div className="flex items-center gap-2 mb-4">
                 <MessageSquare className="w-5 h-5 text-primary" />
@@ -378,9 +392,9 @@ const AIAnalyticsDashboard = () => {
                 </div>
               </div>
             </div>
-          </TabsContent>
+        )}
 
-          <TabsContent value="history">
+        {activeView === "history" && (
             <div className="glass-card rounded-lg p-6">
               <h2 className="text-lg font-semibold text-foreground mb-4">Recent Queries</h2>
               <div className="space-y-3">
@@ -395,8 +409,7 @@ const AIAnalyticsDashboard = () => {
                 ))}
               </div>
             </div>
-          </TabsContent>
-        </Tabs>
+        )}
       </div>
     </div>
   );

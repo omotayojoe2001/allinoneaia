@@ -3,10 +3,9 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
-import { Book, Video, MessageCircle, Search } from "lucide-react";
+import { Book, Video, MessageCircle, Search, ChevronRight } from "lucide-react";
 
 export default function HelpCenter() {
   const { toast } = useToast();
@@ -14,6 +13,7 @@ export default function HelpCenter() {
   const [tickets, setTickets] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [newTicket, setNewTicket] = useState({ subject: "", description: "" });
+  const [activeView, setActiveView] = useState("articles");
 
   useEffect(() => {
     loadArticles();
@@ -60,22 +60,40 @@ export default function HelpCenter() {
         <Input placeholder="Search for help..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
       </div>
 
-      <Tabs defaultValue="articles">
-        <TabsList>
-          <TabsTrigger value="articles"><Book className="w-4 h-4 mr-1" />Articles</TabsTrigger>
-          <TabsTrigger value="support"><MessageCircle className="w-4 h-4 mr-1" />Support</TabsTrigger>
-        </TabsList>
+      <div className="mb-4 flex gap-1">
+        {[
+          { id: "articles", label: "Articles", icon: Book },
+          { id: "support", label: "Support", icon: MessageCircle },
+        ].map(view => (
+          <button
+            key={view.id}
+            onClick={() => setActiveView(view.id)}
+            className={`px-4 py-2 text-sm font-medium rounded transition-all flex items-center gap-1 ${
+              activeView === view.id
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground hover:bg-accent"
+            }`}
+          >
+            <view.icon className="w-4 h-4" />
+            {view.label}
+            {activeView === view.id && <ChevronRight className="w-3 h-3" />}
+          </button>
+        ))}
+      </div>
 
-        <TabsContent value="articles" className="space-y-3">
+      {activeView === "articles" && (
+        <div className="space-y-3">
           {filteredArticles.map(article => (
             <Card key={article.id} className="p-4">
               <h3 className="font-semibold mb-2">{article.title}</h3>
               <p className="text-sm text-muted-foreground">{article.content.substring(0, 150)}...</p>
             </Card>
           ))}
-        </TabsContent>
+        </div>
+      )}
 
-        <TabsContent value="support" className="space-y-4">
+      {activeView === "support" && (
+        <div className="space-y-4">
           <Card className="p-6 space-y-4">
             <h3 className="font-semibold">Create Support Ticket</h3>
             <Input placeholder="Subject" value={newTicket.subject} onChange={e => setNewTicket({...newTicket, subject: e.target.value})} />
@@ -98,8 +116,8 @@ export default function HelpCenter() {
               </Card>
             ))}
           </div>
-        </TabsContent>
-      </Tabs>
+        </div>
+      )}
     </div>
   );
 }

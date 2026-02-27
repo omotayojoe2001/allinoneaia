@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
-import { FileText, Plus, Send, CheckCircle, Clock, AlertCircle } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FileText, Plus, Send, CheckCircle, Clock, AlertCircle, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,6 +34,7 @@ const ContractManagement = () => {
     start_date: "",
     end_date: ""
   });
+  const [activeView, setActiveView] = useState("contracts");
 
   const defaultTemplates = {
     nda: `NON-DISCLOSURE AGREEMENT
@@ -241,14 +241,28 @@ _________________          _________________
           </div>
         )}
 
-        <Tabs defaultValue="contracts">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="contracts">Contracts</TabsTrigger>
-            <TabsTrigger value="templates">Templates</TabsTrigger>
-            <TabsTrigger value="expiring">Expiring Soon</TabsTrigger>
-          </TabsList>
+        <div className="mb-4 flex gap-1">
+          {[
+            { id: "contracts", label: "Contracts" },
+            { id: "templates", label: "Templates" },
+            { id: "expiring", label: "Expiring Soon" },
+          ].map(view => (
+            <button
+              key={view.id}
+              onClick={() => setActiveView(view.id)}
+              className={`px-4 py-2 text-sm font-medium rounded transition-all flex items-center gap-1 ${
+                activeView === view.id
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+              }`}
+            >
+              {view.label}
+              {activeView === view.id && <ChevronRight className="w-3 h-3" />}
+            </button>
+          ))}
+        </div>
 
-          <TabsContent value="contracts">
+        {activeView === "contracts" && (
             <div className="glass-card rounded-lg p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-foreground">All Contracts</h2>
@@ -365,9 +379,9 @@ _________________          _________________
                 </table>
               </div>
             </div>
-          </TabsContent>
+        )}
 
-          <TabsContent value="templates">
+        {activeView === "templates" && (
             <div className="glass-card rounded-lg p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-foreground">Contract Templates</h2>
@@ -450,9 +464,9 @@ _________________          _________________
                 ))}
               </div>
             </div>
-          </TabsContent>
+        )}
 
-          <TabsContent value="expiring">
+        {activeView === "expiring" && (
             <div className="glass-card rounded-lg p-6">
               <h2 className="text-lg font-semibold text-foreground mb-4">Contracts Expiring Soon</h2>
               <div className="overflow-x-auto">
@@ -485,8 +499,7 @@ _________________          _________________
                 </table>
               </div>
             </div>
-          </TabsContent>
-        </Tabs>
+        )}
       </div>
     </div>
   );

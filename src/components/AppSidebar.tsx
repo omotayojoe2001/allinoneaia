@@ -4,13 +4,10 @@ import {
   LayoutDashboard,
   Bot,
   Zap,
-  Headphones,
   Palette,
-  Share2,
   Briefcase,
   Bell,
   Sparkles,
-  CreditCard,
   Settings,
   ChevronLeft,
   ChevronRight,
@@ -22,10 +19,33 @@ import {
   LogOut,
   ChevronDown,
   ChevronUp,
+  FileText,
+  DollarSign,
+  BarChart3,
+  Mail,
+  Wallet,
+  UserCheck,
+  Box,
+  Briefcase as BriefcaseIcon,
+  ClipboardList,
+  ListChecks,
+  PieChart,
+  Brain,
+  Calculator,
+  Wrench,
+  PenTool,
+  Share2,
+  Send,
+  Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import ThemeToggle from "@/components/ThemeToggle";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
@@ -34,62 +54,38 @@ const navItems = [
     icon: Briefcase, 
     label: "Business", 
     path: "/business",
+    tooltip: "Finance, Customers, Inventory, Staff, Contracts, Proposals",
     submenu: [
-      { label: "Cashbook", path: "/business/cashbook" },
-      { label: "Invoices", path: "/business/invoices" },
-      { label: "Customers", path: "/business/customers" },
-      { label: "Customer Intelligence", path: "/business/customer-intelligence" },
-      { label: "Tasks", path: "/business/tasks" },
-      { label: "Appointments", path: "/business/appointments" },
-      { label: "Stock", path: "/business/stock" },
-      { label: "Inventory Intelligence", path: "/business/inventory-intelligence" },
-      { label: "Staff", path: "/business/staff" },
-      { label: "Bookkeeping", path: "/business/bookkeeping" },
-      { label: "Salary", path: "/business/salary" },
-      { label: "Payroll", path: "/business/payroll" },
-      { label: "Contracts", path: "/business/contracts" },
-      { label: "Payment Settings", path: "/business/payment-settings" },
-      { label: "Invoice Reminders", path: "/business/invoice-reminders" },
-      { label: "Proposals & Quotes", path: "/business/proposals" },
+      { icon: Wallet, label: "Finance", path: "/business/finance" },
+      { icon: Users, label: "Customers", path: "/business/customers-hub" },
+      { icon: Package, label: "Inventory", path: "/business/inventory-hub" },
+      { icon: UserCheck, label: "Staff & Payroll", path: "/business/staff-hub" },
+      { icon: FileText, label: "Contracts", path: "/business/contracts" },
+      { icon: ClipboardList, label: "Proposals & Quotes", path: "/business/proposals" },
+      { icon: CheckSquare, label: "Tasks", path: "/business/tasks" },
     ]
   },
   {
     icon: TrendingUp,
     label: "Reports",
     path: "/reports",
+    tooltip: "Financial Reports, Analytics, Custom Reports",
     submenu: [
-      { label: "P&L Report", path: "/reports/profit-loss" },
-      { label: "Tax Calculator", path: "/reports/tax-calculator" },
-      { label: "Spending Patterns", path: "/reports/spending-patterns" },
-      { label: "Cash Flow Forecast", path: "/reports/cash-flow" },
-      { label: "AI Analytics", path: "/reports/ai-analytics" },
-      { label: "Executive Dashboard", path: "/reports/executive" },
-      { label: "Custom Report Builder", path: "/reports/custom-builder" },
-      { label: "Budget vs Actual", path: "/reports/budget-vs-actual" },
-      { label: "Financial Health", path: "/reports/financial-health" },
+      { icon: PieChart, label: "Financial Reports", path: "/reports/financial-hub" },
+      { icon: Brain, label: "AI Analytics", path: "/reports/ai-analytics-hub" },
+      { icon: Calculator, label: "Tax Calculator", path: "/reports/tax-calculator" },
+      { icon: Wrench, label: "Custom Report Builder", path: "/reports/custom-builder" },
     ]
   },
   { 
     icon: Palette, 
     label: "Marketing", 
     path: "/content",
+    tooltip: "Content Creation, Social Media, Email Marketing",
     submenu: [
-      { label: "Content Studio", path: "/content" },
-      { label: "AI Writer", path: "/content/writer" },
-      { label: "Grammar Check", path: "/content/grammar" },
-      { label: "Document Editor", path: "/content/editor" },
-      { label: "Presentation AI", path: "/content/presentation" },
-      { label: "SEO Optimizer", path: "/content/seo" },
-      { label: "Voiceover AI", path: "/content/voiceover" },
-      { label: "Social Manager", path: "/social-manager" },
-      { label: "Social Scheduler", path: "/social/scheduler" },
-      { label: "Growth Services", path: "/social" },
-      { label: "Email Analytics", path: "/marketing/email-analytics" },
-      { label: "Email Sequences", path: "/marketing/email-sequences" },
-      { label: "Unsubscribe Mgmt", path: "/marketing/unsubscribe" },
-      { label: "Deliverability", path: "/marketing/deliverability" },
-      { label: "Bulk Sender", path: "/marketing/bulk-sender" },
-      { label: "CRM Triggers", path: "/marketing/crm-triggers" },
+      { icon: PenTool, label: "Content Creation", path: "/content/hub" },
+      { icon: Share2, label: "Social Media", path: "/social/hub" },
+      { icon: Mail, label: "Email Marketing", path: "/marketing/email-hub" },
     ]
   },
   { icon: Bot, label: "Chatbot Builder", path: "/chat" },
@@ -131,7 +127,7 @@ const AppSidebar = () => {
     <motion.aside
       animate={{ width: collapsed ? 72 : 240 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="h-screen sticky top-0 flex flex-col bg-sidebar border-r border-sidebar-border z-50"
+      className="fixed left-0 top-0 bottom-0 flex flex-col bg-sidebar border-r border-sidebar-border z-50"
     >
       {/* Logo */}
       <div className="h-16 flex items-center px-4 gap-3 border-b border-sidebar-border">
@@ -163,40 +159,49 @@ const AppSidebar = () => {
           return (
             <div key={item.path}>
               {hasSubmenu ? (
-                <button
-                  onClick={() => toggleSubmenu(item.path)}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 group relative w-full",
-                    isActive || isSubmenuActive
-                      ? "bg-primary/10 text-primary"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                <Tooltip delayDuration={300}>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => toggleSubmenu(item.path)}
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 group relative w-full",
+                        isActive || isSubmenuActive
+                          ? "bg-primary/10 text-primary"
+                          : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                      )}
+                    >
+                      {(isActive || isSubmenuActive) && (
+                        <motion.div
+                          layoutId="sidebar-active"
+                          className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary rounded-full"
+                        />
+                      )}
+                      <item.icon className="w-5 h-5 flex-shrink-0" />
+                      <AnimatePresence>
+                        {!collapsed && (
+                          <motion.span
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="whitespace-nowrap overflow-hidden flex-1 text-left"
+                          >
+                            {item.label}
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
+                      {!collapsed && (
+                        <span className="ml-auto">
+                          {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        </span>
+                      )}
+                    </button>
+                  </TooltipTrigger>
+                  {item.tooltip && (
+                    <TooltipContent side="right" className="max-w-xs">
+                      <p className="text-xs">{item.tooltip}</p>
+                    </TooltipContent>
                   )}
-                >
-                  {(isActive || isSubmenuActive) && (
-                    <motion.div
-                      layoutId="sidebar-active"
-                      className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary rounded-full"
-                    />
-                  )}
-                  <item.icon className="w-5 h-5 flex-shrink-0" />
-                  <AnimatePresence>
-                    {!collapsed && (
-                      <motion.span
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="whitespace-nowrap overflow-hidden flex-1 text-left"
-                      >
-                        {item.label}
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                  {!collapsed && (
-                    <span className="ml-auto">
-                      {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </span>
-                  )}
-                </button>
+                </Tooltip>
               ) : (
                 <Link
                   to={item.path}
@@ -235,19 +240,20 @@ const AppSidebar = () => {
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  className="ml-8 mt-1 space-y-1"
+                  className="ml-4 mt-1 space-y-1"
                 >
                   {item.submenu.map((subItem) => (
                     <Link
                       key={subItem.path}
                       to={subItem.path}
                       className={cn(
-                        "flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors",
+                        "flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-colors",
                         location.pathname === subItem.path
                           ? "bg-primary/10 text-primary"
                           : "text-sidebar-foreground hover:bg-sidebar-accent"
                       )}
                     >
+                      {subItem.icon && <subItem.icon className="w-3.5 h-3.5" />}
                       {subItem.label}
                     </Link>
                   ))}
@@ -358,6 +364,11 @@ const AppSidebar = () => {
             )}
           </AnimatePresence>
         </button>
+
+        <div className="flex items-center gap-3 px-3 py-2.5">
+          {!collapsed && <span className="text-sm text-sidebar-foreground">Theme</span>}
+          <ThemeToggle />
+        </div>
 
         <button
           onClick={() => setCollapsed(!collapsed)}

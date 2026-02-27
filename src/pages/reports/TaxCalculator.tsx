@@ -2,12 +2,11 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { useCurrency } from "@/contexts/CurrencyContext";
-import { Calculator, Download, Calendar, Settings } from "lucide-react";
+import { Calculator, Download, Calendar, Settings, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -39,6 +38,7 @@ const TaxCalculator = () => {
   // Monthly liability
   const [monthlyData, setMonthlyData] = useState<any[]>([]);
   const [remittanceSchedule, setRemittanceSchedule] = useState<any[]>([]);
+  const [activeView, setActiveView] = useState("calculators");
 
   useEffect(() => {
     const now = new Date();
@@ -194,14 +194,28 @@ const TaxCalculator = () => {
           </Button>
         </div>
 
-        <Tabs defaultValue="calculators" className="mb-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="calculators">Calculators</TabsTrigger>
-            <TabsTrigger value="monthly">Monthly Liability</TabsTrigger>
-            <TabsTrigger value="remittance">Remittance Schedule</TabsTrigger>
-          </TabsList>
+        <div className="mb-4 flex gap-1">
+          {[
+            { id: "calculators", label: "Calculators" },
+            { id: "monthly", label: "Monthly Liability" },
+            { id: "remittance", label: "Remittance Schedule" },
+          ].map(view => (
+            <button
+              key={view.id}
+              onClick={() => setActiveView(view.id)}
+              className={`px-4 py-2 text-sm font-medium rounded transition-all flex items-center gap-1 ${
+                activeView === view.id
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+              }`}
+            >
+              {view.label}
+              {activeView === view.id && <ChevronRight className="w-3 h-3" />}
+            </button>
+          ))}
+        </div>
 
-          <TabsContent value="calculators">
+        {activeView === "calculators" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* VAT Calculator */}
               <div className="glass-card rounded-lg p-6">
@@ -339,9 +353,9 @@ const TaxCalculator = () => {
                 </div>
               </div>
             </div>
-          </TabsContent>
+        )}
 
-          <TabsContent value="monthly">
+        {activeView === "monthly" && (
             <div className="glass-card rounded-lg p-6">
               <div className="flex items-center gap-4 mb-4">
                 <Calendar className="w-5 h-5 text-muted-foreground" />
@@ -384,9 +398,9 @@ const TaxCalculator = () => {
                 </table>
               </div>
             </div>
-          </TabsContent>
+        )}
 
-          <TabsContent value="remittance">
+        {activeView === "remittance" && (
             <div className="glass-card rounded-lg p-6">
               <h2 className="text-lg font-semibold text-foreground mb-4">Tax Remittance Schedule</h2>
               <div className="overflow-x-auto">
@@ -418,8 +432,7 @@ const TaxCalculator = () => {
                 </table>
               </div>
             </div>
-          </TabsContent>
-        </Tabs>
+        )}
       </div>
     </div>
   );

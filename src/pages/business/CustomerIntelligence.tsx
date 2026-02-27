@@ -2,14 +2,14 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { useCurrency } from "@/contexts/CurrencyContext";
-import { Users, TrendingUp, AlertCircle, Star, Mail } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Users, TrendingUp, AlertCircle, Star, Mail, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const CustomerIntelligence = () => {
   const { user } = useAuth();
   const { formatAmount } = useCurrency();
   const [analytics, setAnalytics] = useState<any[]>([]);
+  const [activeView, setActiveView] = useState("top");
   const [segments, setSegments] = useState({
     highValue: 0,
     active: 0,
@@ -168,15 +168,29 @@ const CustomerIntelligence = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="top">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="top">Top Customers</TabsTrigger>
-            <TabsTrigger value="dormant">Dormant</TabsTrigger>
-            <TabsTrigger value="atrisk">At Risk</TabsTrigger>
-            <TabsTrigger value="all">All Customers</TabsTrigger>
-          </TabsList>
+        <div className="mb-4 flex gap-1">
+          {[
+            { id: "top", label: "Top Customers" },
+            { id: "dormant", label: "Dormant" },
+            { id: "atrisk", label: "At Risk" },
+            { id: "all", label: "All Customers" },
+          ].map(view => (
+            <button
+              key={view.id}
+              onClick={() => setActiveView(view.id)}
+              className={`px-4 py-2 text-sm font-medium rounded transition-all flex items-center gap-1 ${
+                activeView === view.id
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+              }`}
+            >
+              {view.label}
+              {activeView === view.id && <ChevronRight className="w-3 h-3" />}
+            </button>
+          ))}
+        </div>
 
-          <TabsContent value="top">
+        {activeView === "top" && (
             <div className="glass-card rounded-lg p-6">
               <h2 className="text-lg font-semibold text-foreground mb-4">Top 10 Customers by Lifetime Value</h2>
               <div className="overflow-x-auto">
@@ -215,9 +229,9 @@ const CustomerIntelligence = () => {
                 </table>
               </div>
             </div>
-          </TabsContent>
+        )}
 
-          <TabsContent value="dormant">
+        {activeView === "dormant" && (
             <div className="glass-card rounded-lg p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-foreground">Dormant Customers (30-60 days)</h2>
@@ -251,9 +265,9 @@ const CustomerIntelligence = () => {
                 </table>
               </div>
             </div>
-          </TabsContent>
+        )}
 
-          <TabsContent value="atrisk">
+        {activeView === "atrisk" && (
             <div className="glass-card rounded-lg p-6">
               <div className="flex items-center gap-2 mb-4">
                 <AlertCircle className="w-5 h-5 text-orange-500" />
@@ -284,9 +298,9 @@ const CustomerIntelligence = () => {
                 </table>
               </div>
             </div>
-          </TabsContent>
+        )}
 
-          <TabsContent value="all">
+        {activeView === "all" && (
             <div className="glass-card rounded-lg p-6">
               <h2 className="text-lg font-semibold text-foreground mb-4">All Customers</h2>
               <div className="overflow-x-auto">
@@ -332,8 +346,7 @@ const CustomerIntelligence = () => {
                 </table>
               </div>
             </div>
-          </TabsContent>
-        </Tabs>
+        )}
       </div>
     </div>
   );

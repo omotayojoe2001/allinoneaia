@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { useCurrency } from "@/contexts/CurrencyContext";
-import { Package, TrendingUp, TrendingDown, AlertTriangle, FileText } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Package, TrendingUp, TrendingDown, AlertTriangle, FileText, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
@@ -16,6 +15,7 @@ const InventoryIntelligence = () => {
   const [bestSellers, setBestSellers] = useState<any[]>([]);
   const [worstSellers, setWorstSellers] = useState<any[]>([]);
   const [valuation, setValuation] = useState<any>(null);
+  const [activeView, setActiveView] = useState("critical");
 
   useEffect(() => {
     if (user) {
@@ -211,15 +211,29 @@ const InventoryIntelligence = () => {
           </div>
         )}
 
-        <Tabs defaultValue="critical">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="critical">Critical Stock</TabsTrigger>
-            <TabsTrigger value="bestsellers">Best Sellers</TabsTrigger>
-            <TabsTrigger value="worst">Dead Stock</TabsTrigger>
-            <TabsTrigger value="all">All Products</TabsTrigger>
-          </TabsList>
+        <div className="mb-4 flex gap-1">
+          {[
+            { id: "critical", label: "Critical Stock" },
+            { id: "bestsellers", label: "Best Sellers" },
+            { id: "worst", label: "Dead Stock" },
+            { id: "all", label: "All Products" },
+          ].map(view => (
+            <button
+              key={view.id}
+              onClick={() => setActiveView(view.id)}
+              className={`px-4 py-2 text-sm font-medium rounded transition-all flex items-center gap-1 ${
+                activeView === view.id
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+              }`}
+            >
+              {view.label}
+              {activeView === view.id && <ChevronRight className="w-3 h-3" />}
+            </button>
+          ))}
+        </div>
 
-          <TabsContent value="critical">
+        {activeView === "critical" && (
             <div className="glass-card rounded-lg p-6">
               <div className="flex items-center gap-2 mb-4">
                 <AlertTriangle className="w-5 h-5 text-red-500" />
@@ -263,9 +277,9 @@ const InventoryIntelligence = () => {
                 </table>
               </div>
             </div>
-          </TabsContent>
+        )}
 
-          <TabsContent value="bestsellers">
+        {activeView === "bestsellers" && (
             <div className="glass-card rounded-lg p-6">
               <div className="flex items-center gap-2 mb-4">
                 <TrendingUp className="w-5 h-5 text-green-500" />
@@ -296,9 +310,9 @@ const InventoryIntelligence = () => {
                 </table>
               </div>
             </div>
-          </TabsContent>
+        )}
 
-          <TabsContent value="worst">
+        {activeView === "worst" && (
             <div className="glass-card rounded-lg p-6">
               <div className="flex items-center gap-2 mb-4">
                 <TrendingDown className="w-5 h-5 text-red-500" />
@@ -331,9 +345,9 @@ const InventoryIntelligence = () => {
                 </table>
               </div>
             </div>
-          </TabsContent>
+        )}
 
-          <TabsContent value="all">
+        {activeView === "all" && (
             <div className="glass-card rounded-lg p-6">
               <h2 className="text-lg font-semibold text-foreground mb-4">All Products</h2>
               <div className="overflow-x-auto">
@@ -370,8 +384,7 @@ const InventoryIntelligence = () => {
                 </table>
               </div>
             </div>
-          </TabsContent>
-        </Tabs>
+        )}
       </div>
     </div>
   );

@@ -14,7 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ChevronRight } from "lucide-react";
 import { KCLAUT_SERVICES } from "@/lib/kclaut-services-data";
 
 export default function GrowthServices() {
@@ -33,6 +33,7 @@ export default function GrowthServices() {
   const [loadingServices, setLoadingServices] = useState(true);
   const [kclautBalance, setKclautBalance] = useState({ balance: "0", currency: "NGN" });
   const [showOrderDialog, setShowOrderDialog] = useState(false);
+  const [activeView, setActiveView] = useState("services");
 
   useEffect(() => {
     loadRealServices();
@@ -265,13 +266,28 @@ export default function GrowthServices() {
           </div>
         </div>
 
-        <Tabs defaultValue="services" className="w-full">
-          <TabsList>
-            <TabsTrigger value="services">All Services ({filteredServices.length})</TabsTrigger>
-            <TabsTrigger value="orders">My Orders ({orders.length})</TabsTrigger>
-          </TabsList>
+        <div className="mb-4 flex gap-1">
+          {[
+            { id: "services", label: `All Services (${filteredServices.length})` },
+            { id: "orders", label: `My Orders (${orders.length})` },
+          ].map(view => (
+            <button
+              key={view.id}
+              onClick={() => setActiveView(view.id)}
+              className={`px-4 py-2 text-sm font-medium rounded transition-all flex items-center gap-1 ${
+                activeView === view.id
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+              }`}
+            >
+              {view.label}
+              {activeView === view.id && <ChevronRight className="w-3 h-3" />}
+            </button>
+          ))}
+        </div>
 
-          <TabsContent value="services" className="space-y-6">
+        {activeView === "services" && (
+          <div className="space-y-6">
             {/* Search */}
             <div className="relative mb-6">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -402,9 +418,11 @@ export default function GrowthServices() {
                 </CardContent>
               </Card>
             )}
-          </TabsContent>
+          </div>
+        )}
 
-          <TabsContent value="orders" className="space-y-6">
+        {activeView === "orders" && (
+          <div className="space-y-6">
             {orders.length > 0 ? (
               <Card>
                 <CardHeader>
@@ -451,8 +469,8 @@ export default function GrowthServices() {
                 </CardContent>
               </Card>
             )}
-          </TabsContent>
-        </Tabs>
+          </div>
+        )}
 
         {/* Order Dialog */}
         <Dialog open={showOrderDialog} onOpenChange={setShowOrderDialog}>

@@ -2,12 +2,11 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { useCurrency } from "@/contexts/CurrencyContext";
-import { Bell, Clock, Mail, MessageSquare } from "lucide-react";
+import { Bell, Clock, Mail, MessageSquare, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 
@@ -27,6 +26,7 @@ const InvoiceReminders = () => {
   });
   const [agingData, setAgingData] = useState<any>(null);
   const [reminderLogs, setReminderLogs] = useState<any[]>([]);
+  const [activeView, setActiveView] = useState("settings");
 
   useEffect(() => {
     if (user) {
@@ -101,14 +101,28 @@ const InvoiceReminders = () => {
           <p className="text-sm text-muted-foreground">Automated payment reminders and aging reports</p>
         </div>
 
-        <Tabs defaultValue="settings">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="settings">Settings</TabsTrigger>
-            <TabsTrigger value="aging">Aging Report</TabsTrigger>
-            <TabsTrigger value="logs">Reminder Logs</TabsTrigger>
-          </TabsList>
+        <div className="mb-4 flex gap-1">
+          {[
+            { id: "settings", label: "Settings" },
+            { id: "aging", label: "Aging Report" },
+            { id: "logs", label: "Reminder Logs" },
+          ].map(view => (
+            <button
+              key={view.id}
+              onClick={() => setActiveView(view.id)}
+              className={`px-4 py-2 text-sm font-medium rounded transition-all flex items-center gap-1 ${
+                activeView === view.id
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+              }`}
+            >
+              {view.label}
+              {activeView === view.id && <ChevronRight className="w-3 h-3" />}
+            </button>
+          ))}
+        </div>
 
-          <TabsContent value="settings">
+        {activeView === "settings" && (
             <div className="space-y-6">
               <div className="glass-card rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
@@ -210,9 +224,9 @@ const InvoiceReminders = () => {
                 </>
               )}
             </div>
-          </TabsContent>
+        )}
 
-          <TabsContent value="aging">
+        {activeView === "aging" && (
             <div className="glass-card rounded-lg p-6">
               <div className="flex items-center gap-2 mb-6">
                 <Clock className="w-5 h-5 text-muted-foreground" />
@@ -256,9 +270,9 @@ const InvoiceReminders = () => {
                 </div>
               )}
             </div>
-          </TabsContent>
+        )}
 
-          <TabsContent value="logs">
+        {activeView === "logs" && (
             <div className="glass-card rounded-lg p-6">
               <h2 className="text-lg font-semibold text-foreground mb-4">Recent Reminders</h2>
               <div className="overflow-x-auto">
@@ -298,8 +312,7 @@ const InvoiceReminders = () => {
                 </table>
               </div>
             </div>
-          </TabsContent>
-        </Tabs>
+        )}
       </div>
     </div>
   );
