@@ -161,20 +161,20 @@ const SettingsPage = () => {
           )}
           <div>
             <h2 className="text-lg font-semibold mb-4">Account Information</h2>
-            <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
+            <div className="space-y-4 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>First Name</Label>
-                  <Input value={userInfo.first_name} disabled className="bg-gray-100" />
+                  <Input value={userInfo.first_name} disabled className="bg-gray-100 dark:bg-gray-700 dark:text-gray-200" />
                 </div>
                 <div>
                   <Label>Last Name</Label>
-                  <Input value={userInfo.last_name} disabled className="bg-gray-100" />
+                  <Input value={userInfo.last_name} disabled className="bg-gray-100 dark:bg-gray-700 dark:text-gray-200" />
                 </div>
               </div>
               <div>
                 <Label>Email</Label>
-                <Input value={userInfo.email} disabled className="bg-gray-100" />
+                <Input value={userInfo.email} disabled className="bg-gray-100 dark:bg-gray-700 dark:text-gray-200" />
               </div>
             </div>
           </div>

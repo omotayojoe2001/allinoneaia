@@ -14,7 +14,6 @@ const tools = [
   { name: "Invoice Generator", desc: "Create & send PDF invoices", icon: FileText, link: "/business/invoices", color: "hsl(var(--module-business))" },
   { name: "Bookkeeping", desc: "Financial records & reports", icon: BookOpen, link: "/business/bookkeeping", color: "hsl(var(--module-business))" },
   { name: "Staff Management", desc: "Employee database", icon: Users, link: "/business/staff", color: "hsl(var(--module-business))" },
-  { name: "Attendance", desc: "Track staff attendance", icon: CheckSquare, link: "/business/attendance", color: "hsl(var(--module-business))" },
   { name: "Salary Management", desc: "Manage staff salaries", icon: DollarSign, link: "/business/salary", color: "hsl(var(--module-business))" },
   { name: "Smart Reports", desc: "AI-powered data analysis", icon: Table, link: "/business/reports", color: "hsl(var(--module-business))" },
 ];

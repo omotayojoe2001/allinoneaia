@@ -37,16 +37,21 @@ const VoiceoverLibrary = () => {
     }
   };
 
-  const togglePlay = (id: string, url: string) => {
+  const togglePlay = async (id: string, fileUrl: string) => {
     if (playingId === id) {
       audioRef.current?.pause();
       setPlayingId(null);
     } else {
-      if (audioRef.current) {
-        audioRef.current.src = url;
-        audioRef.current.play();
+      try {
+        if (audioRef.current) {
+          audioRef.current.src = fileUrl;
+          await audioRef.current.play();
+          setPlayingId(id);
+        }
+      } catch (error) {
+        console.error('Play error:', error);
+        toast({ title: 'Error playing audio', variant: 'destructive' });
       }
-      setPlayingId(id);
     }
   };
 
@@ -108,7 +113,7 @@ const VoiceoverLibrary = () => {
                 <div className="flex gap-2">
                   <a
                     href={vo.file_url}
-                    download
+                    download={`voiceover-${vo.id}.mp3`}
                     className="p-2 hover:bg-secondary rounded-lg"
                   >
                     <Download className="w-5 h-5" />

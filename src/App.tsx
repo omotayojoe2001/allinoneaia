@@ -41,6 +41,12 @@ import StockManagement from "@/pages/business/StockManagement";
 import Appointments from "@/pages/business/Appointments";
 import Tasks from "@/pages/business/Tasks";
 import StaffManagement from "@/pages/business/StaffManagement";
+import PaymentSettings from "@/pages/business/PaymentSettings";
+import InvoiceReminders from "@/pages/business/InvoiceReminders";
+import CustomerIntelligence from "@/pages/business/CustomerIntelligence";
+import InventoryIntelligence from "@/pages/business/InventoryIntelligence";
+import ContractManagement from "@/pages/business/ContractManagement";
+import PayrollManagement from "@/pages/business/PayrollManagement";
 import SpreadsheetAI from "@/pages/business/SpreadsheetAI";
 import GrowthServices from "@/pages/social/GrowthServices";
 import SocialScheduler from "@/pages/social/SocialScheduler";
@@ -51,6 +57,25 @@ import VoiceoverLibrary from "@/pages/content/VoiceoverLibrary";
 import DocumentEditor from "@/pages/content/DocumentEditor";
 import PresentationAI from "@/pages/content/PresentationAI";
 import SEOOptimizer from "@/pages/content/SEOOptimizer";
+import ProfitLoss from "@/pages/reports/ProfitLoss";
+import TaxCalculator from "@/pages/reports/TaxCalculator";
+import SpendingPatterns from "@/pages/reports/SpendingPatterns";
+import CashFlowForecast from "@/pages/reports/CashFlowForecast";
+import AIAnalyticsDashboard from "@/pages/reports/AIAnalyticsDashboard";
+import ProposalBuilder from "@/pages/business/ProposalBuilder";
+import EmailAnalytics from "@/pages/marketing/EmailAnalytics";
+import EmailSequences from "@/pages/marketing/EmailSequences";
+import UnsubscribeManagement from "@/pages/marketing/UnsubscribeManagement";
+import EmailDeliverability from "@/pages/marketing/EmailDeliverability";
+import BulkEmailSender from "@/pages/marketing/BulkEmailSender";
+import CRMEmailTriggers from "@/pages/marketing/CRMEmailTriggers";
+import ExecutiveDashboard from "@/pages/reports/ExecutiveDashboard";
+import CustomReportBuilder from "@/pages/reports/CustomReportBuilder";
+import BudgetVsActual from "@/pages/reports/BudgetVsActual";
+import FinancialHealthScore from "@/pages/reports/FinancialHealthScore";
+import SubscriptionManagement from "@/pages/settings/SubscriptionManagement";
+import HelpCenter from "@/pages/settings/HelpCenter";
+import NotificationsCenter from "@/pages/settings/NotificationsCenter";
 import { ReminderScheduler } from "@/components/ReminderScheduler";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
@@ -114,7 +139,32 @@ const App = () => (
               <Route path="/business/appointments" element={<ProtectedRoute><AppLayout><Appointments /></AppLayout></ProtectedRoute>} />
               <Route path="/business/tasks" element={<ProtectedRoute><AppLayout><Tasks /></AppLayout></ProtectedRoute>} />
               <Route path="/business/staff" element={<ProtectedRoute><AppLayout><StaffManagement /></AppLayout></ProtectedRoute>} />
+              <Route path="/business/payment-settings" element={<ProtectedRoute><AppLayout><PaymentSettings /></AppLayout></ProtectedRoute>} />
+              <Route path="/business/invoice-reminders" element={<ProtectedRoute><AppLayout><InvoiceReminders /></AppLayout></ProtectedRoute>} />
+              <Route path="/business/customer-intelligence" element={<ProtectedRoute><AppLayout><CustomerIntelligence /></AppLayout></ProtectedRoute>} />
+              <Route path="/business/inventory-intelligence" element={<ProtectedRoute><AppLayout><InventoryIntelligence /></AppLayout></ProtectedRoute>} />
+              <Route path="/business/contracts" element={<ProtectedRoute><AppLayout><ContractManagement /></AppLayout></ProtectedRoute>} />
+              <Route path="/business/payroll" element={<ProtectedRoute><AppLayout><PayrollManagement /></AppLayout></ProtectedRoute>} />
               <Route path="/business/reports" element={<ProtectedRoute><AppLayout><SpreadsheetAI /></AppLayout></ProtectedRoute>} />
+              <Route path="/reports/profit-loss" element={<ProtectedRoute><AppLayout><ProfitLoss /></AppLayout></ProtectedRoute>} />
+              <Route path="/reports/tax-calculator" element={<ProtectedRoute><AppLayout><TaxCalculator /></AppLayout></ProtectedRoute>} />
+              <Route path="/reports/spending-patterns" element={<ProtectedRoute><AppLayout><SpendingPatterns /></AppLayout></ProtectedRoute>} />
+              <Route path="/reports/cash-flow" element={<ProtectedRoute><AppLayout><CashFlowForecast /></AppLayout></ProtectedRoute>} />
+              <Route path="/reports/ai-analytics" element={<ProtectedRoute><AppLayout><AIAnalyticsDashboard /></AppLayout></ProtectedRoute>} />
+              <Route path="/business/proposals" element={<ProtectedRoute><AppLayout><ProposalBuilder /></AppLayout></ProtectedRoute>} />
+              <Route path="/marketing/email-analytics" element={<ProtectedRoute><AppLayout><EmailAnalytics /></AppLayout></ProtectedRoute>} />
+              <Route path="/marketing/email-sequences" element={<ProtectedRoute><AppLayout><EmailSequences /></AppLayout></ProtectedRoute>} />
+              <Route path="/marketing/unsubscribe" element={<ProtectedRoute><AppLayout><UnsubscribeManagement /></AppLayout></ProtectedRoute>} />
+              <Route path="/marketing/deliverability" element={<ProtectedRoute><AppLayout><EmailDeliverability /></AppLayout></ProtectedRoute>} />
+              <Route path="/marketing/bulk-sender" element={<ProtectedRoute><AppLayout><BulkEmailSender /></AppLayout></ProtectedRoute>} />
+              <Route path="/marketing/crm-triggers" element={<ProtectedRoute><AppLayout><CRMEmailTriggers /></AppLayout></ProtectedRoute>} />
+              <Route path="/reports/executive" element={<ProtectedRoute><AppLayout><ExecutiveDashboard /></AppLayout></ProtectedRoute>} />
+              <Route path="/reports/custom-builder" element={<ProtectedRoute><AppLayout><CustomReportBuilder /></AppLayout></ProtectedRoute>} />
+              <Route path="/reports/budget-vs-actual" element={<ProtectedRoute><AppLayout><BudgetVsActual /></AppLayout></ProtectedRoute>} />
+              <Route path="/reports/financial-health" element={<ProtectedRoute><AppLayout><FinancialHealthScore /></AppLayout></ProtectedRoute>} />
+              <Route path="/settings/subscription" element={<ProtectedRoute><AppLayout><SubscriptionManagement /></AppLayout></ProtectedRoute>} />
+              <Route path="/settings/help" element={<ProtectedRoute><AppLayout><HelpCenter /></AppLayout></ProtectedRoute>} />
+              <Route path="/settings/notifications" element={<ProtectedRoute><AppLayout><NotificationsCenter /></AppLayout></ProtectedRoute>} />
               <Route path="/reminders" element={<ProtectedRoute><AppLayout><RemindersPage /></AppLayout></ProtectedRoute>} />
               <Route path="/life" element={<ProtectedRoute><AppLayout><LifeAutomationPage /></AppLayout></ProtectedRoute>} />
               <Route path="/billing" element={<ProtectedRoute><AppLayout><BillingPage /></AppLayout></ProtectedRoute>} />

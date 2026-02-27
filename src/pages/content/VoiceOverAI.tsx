@@ -37,16 +37,32 @@ const VoiceOverAI = () => {
 
     setLoading(true);
     try {
-      const url = await elevenlabsAPI.generateVoice(text, { voiceId: selectedVoice });
-      setAudioUrl(url);
+      const blobUrl = await elevenlabsAPI.generateVoice(text, { voiceId: selectedVoice });
+      setAudioUrl(blobUrl);
 
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
+        // Fetch the blob and upload to Supabase storage
+        const response = await fetch(blobUrl);
+        const blob = await response.blob();
+        const fileName = `voiceover-${Date.now()}.mp3`;
+        
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('generated-media')
+          .upload(fileName, blob, { contentType: 'audio/mpeg' });
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('generated-media')
+          .getPublicUrl(fileName);
+
         await supabase.from('generated_media').insert({
           user_id: user.id,
           type: 'audio',
           prompt: text.substring(0, 200),
-          file_url: url,
+          file_url: publicUrl,
+          file_path: fileName
         });
       }
 
