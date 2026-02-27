@@ -23,7 +23,7 @@ const EmailMarketingHub = () => {
 
   return (
     <div className="flex-1 flex flex-col">
-      <div className="bg-background px-6 py-2 flex gap-1 border-b overflow-x-auto">
+      <div className="bg-background px-6 py-3 flex gap-1 border-b overflow-x-auto">
         {tabs.map(tab => (
           <button
             key={tab.id}

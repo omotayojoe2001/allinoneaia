@@ -357,13 +357,9 @@ export default function StaffManagement() {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-8">
-      <div className="max-w-6xl mx-auto">
-      <Link to="/business" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
-        <ArrowLeft className="w-4 h-4" /> Back
-      </Link>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Staff Management</h1>
+    <div className="flex-1 overflow-y-auto px-6 py-4">
+      <div className="max-w-6xl mx-auto space-y-4">
+      <div className="flex justify-between items-center">
         <div className="flex gap-2">
           <Button variant={activeTab === "staff" ? "default" : "outline"} onClick={() => setActiveTab("staff")}>Staff</Button>
           <Button variant={activeTab === "list" ? "default" : "outline"} onClick={() => setActiveTab("list")}>Staff List</Button>

@@ -22,7 +22,7 @@ const FinanceHub = () => {
 
   return (
     <div className="flex-1 flex flex-col">
-      <div className="bg-background px-6 py-2 flex gap-1 border-b">
+      <div className="bg-background px-6 py-3 flex gap-1 border-b">
         {tabs.map(tab => (
           <button
             key={tab.id}
