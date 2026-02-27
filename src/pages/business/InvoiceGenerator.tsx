@@ -407,15 +407,10 @@ const InvoiceGenerator = () => {
   const { subtotal, taxAmount, deliveryFee, total } = calculateTotals();
 
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-8">
+    <div className="flex-1 overflow-y-auto px-6 py-4">
       <PageAIAgent {...pageAgentConfigs.invoices} />
-      <div className="max-w-6xl mx-auto">
-        <Link to="/business" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </Link>
-
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">Invoice Generator</h1>
+      <div className="max-w-6xl mx-auto space-y-4">
+        <div className="flex items-center justify-between">
           <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetForm(); }}>
             <DialogTrigger asChild>
               <Button><Plus className="w-4 h-4 mr-2" />Create Invoice</Button>
@@ -546,7 +541,7 @@ const InvoiceGenerator = () => {
         </div>
 
         {!profile?.business_name && (
-          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <p className="text-sm text-yellow-800">
               ⚠️ Please complete your business profile in <Link to="/settings" className="underline font-semibold">Settings</Link> before creating invoices.
             </p>

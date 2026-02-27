@@ -6,54 +6,61 @@ export interface PaystackConfig {
 }
 
 class PaystackService {
-  private publicKey: string = "pk_live_a044f9545cbf5130cba970f9d9c1e9472b1f1749";
+  async getConfig(userId: string): Promise<PaystackConfig | null> {
+    const { data } = await supabase
+      .from("payment_gateway_settings")
+      .select("paystack_public_key, paystack_secret_key, paystack_enabled")
+      .eq("user_id", userId)
+      .single();
+
+    if (!data?.paystack_enabled || !data.paystack_public_key) return null;
+
+    return {
+      public_key: data.paystack_public_key,
+      secret_key: data.paystack_secret_key,
+    };
+  }
 
   async initializePayment(
+    userId: string,
     email: string,
     amount: number,
     metadata: any = {}
   ): Promise<{ reference: string }> {
-    const reference = `ORDER_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const config = await this.getConfig(userId);
+    if (!config) throw new Error("Paystack not configured");
 
-    // Save transaction record
-    const { data: user } = await supabase.auth.getUser();
-    await supabase.from("payment_transactions").insert({
-      user_id: user.user?.id,
-      reference,
+    const reference = `PAY_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    await supabase.from("payment_transactions_log").insert({
+      user_id: userId,
+      related_invoice_id: metadata.invoice_id,
+      gateway: "paystack",
+      transaction_reference: reference,
       amount,
       currency: "NGN",
       status: "pending",
+      customer_email: email,
+      customer_name: metadata.customer_name,
     });
 
-    // Add class to body when Paystack opens
     document.body.classList.add('paystack-open');
 
-    // Initialize Paystack payment
     return new Promise((resolve, reject) => {
       const handler = (window as any).PaystackPop.setup({
-        key: this.publicKey,
+        key: config.public_key,
         email,
         amount: Math.round(amount * 100),
         currency: "NGN",
         ref: reference,
-        metadata: {
-          custom_fields: [
-            {
-              display_name: "Service",
-              variable_name: "service_name",
-              value: metadata.service_name || ""
-            }
-          ]
-        },
+        metadata,
         callback: (response: any) => {
           document.body.classList.remove('paystack-open');
-          resolve({
-            reference: response.reference,
-          });
+          resolve({ reference: response.reference });
         },
         onClose: () => {
           document.body.classList.remove('paystack-open');
-          reject(new Error("Payment cancelled by user"));
+          reject(new Error("Payment cancelled"));
         },
       });
 
@@ -66,11 +73,28 @@ class PaystackService {
       body: { reference },
     });
 
-    if (error || !data?.success) {
-      throw new Error("Payment verification failed");
-    }
-
+    if (error || !data?.success) throw new Error("Payment verification failed");
     return true;
+  }
+
+  async generatePaymentLink(userId: string, invoiceId: string, amount: number, email: string): Promise<string> {
+    const config = await this.getConfig(userId);
+    if (!config) throw new Error("Paystack not configured");
+
+    const reference = `INV_${invoiceId}_${Date.now()}`;
+    
+    await supabase.from("payment_transactions_log").insert({
+      user_id: userId,
+      related_invoice_id: invoiceId,
+      gateway: "paystack",
+      transaction_reference: reference,
+      amount,
+      currency: "NGN",
+      status: "pending",
+      customer_email: email,
+    });
+
+    return `https://paystack.com/pay/${reference}`;
   }
 }
 

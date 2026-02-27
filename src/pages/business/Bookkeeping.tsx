@@ -41,14 +41,9 @@ export default function Bookkeeping() {
   const totalDebits = transactions.filter(t => t.type === "debit" && t.status === "pending").reduce((sum, t) => sum + parseFloat(t.amount), 0);
 
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-8">
-      <div className="max-w-6xl mx-auto">
-      <Link to="/business" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
-        <ArrowLeft className="w-4 h-4" /> Back
-      </Link>
-      <h1 className="text-3xl font-bold mb-6">Bookkeeping</h1>
-
-      <div className="grid grid-cols-4 gap-4 mb-6">
+    <div className="flex-1 overflow-y-auto px-6 py-4">
+      <div className="max-w-6xl mx-auto space-y-4">
+      <div className="grid grid-cols-4 gap-4">
         <div className="bg-green-50 p-4 rounded-lg">
           <p className="text-sm text-gray-600">Total Income</p>
           <p className="text-2xl font-bold text-green-600">{formatAmount(totalIncome)}</p>
@@ -67,7 +62,7 @@ export default function Bookkeeping() {
         </div>
       </div>
 
-      <div className="mb-4">
+      <div>
         <Select value={filter} onValueChange={setFilter}>
           <SelectTrigger className="w-64">
             <SelectValue />

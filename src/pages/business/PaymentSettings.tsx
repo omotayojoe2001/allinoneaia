@@ -68,9 +68,9 @@ const PaymentSettings = () => {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-6">
+    <div className="flex-1 overflow-y-auto px-6 py-4">
+      <div className="max-w-4xl mx-auto space-y-4">
+        <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <CreditCard className="w-6 h-6 text-primary" />
             Payment Gateway Settings
@@ -78,7 +78,7 @@ const PaymentSettings = () => {
           <p className="text-sm text-muted-foreground">Configure Paystack and Flutterwave for invoice payments</p>
         </div>
 
-        <div className="glass-card rounded-lg p-6 mb-6">
+        <div className="glass-card rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-lg font-semibold text-foreground">Paystack</h2>
@@ -117,7 +117,7 @@ const PaymentSettings = () => {
           )}
         </div>
 
-        <div className="glass-card rounded-lg p-6 mb-6">
+        <div className="glass-card rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-lg font-semibold text-foreground">Flutterwave</h2>
@@ -156,7 +156,7 @@ const PaymentSettings = () => {
           )}
         </div>
 
-        <div className="glass-card rounded-lg p-6 mb-6">
+        <div className="glass-card rounded-lg p-6">
           <h2 className="text-lg font-semibold text-foreground mb-4">Preferred Gateway</h2>
           <Select value={settings.preferred_gateway} onValueChange={(v) => setSettings({ ...settings, preferred_gateway: v })}>
             <SelectTrigger>
