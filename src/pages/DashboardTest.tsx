@@ -5,9 +5,9 @@ import { supabase } from "@/lib/supabase";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { Link } from "react-router-dom";
 import { QuickCheckIn } from "@/components/QuickCheckIn";
-import { DollarSign, TrendingUp, TrendingDown, Users, Package, FileText, AlertCircle, CheckCircle, Clock, Zap, Target, ArrowUpRight, Mail, Phone, Calendar, Briefcase, ShoppingCart, CreditCard, Bell } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, Users, Package, FileText, AlertCircle, Clock, Zap, ArrowUpRight, Mail, CheckCircle, Calendar } from "lucide-react";
 
-export default function Dashboard() {
+export default function DashboardTest() {
   const { user } = useAuth();
   const { formatAmount } = useCurrency();
   const [stats, setStats] = useState<any>({});
@@ -37,13 +37,7 @@ export default function Dashboard() {
   const loadDashboard = async () => {
     if (!user) return;
 
-    // Fetch user profile
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('full_name')
-      .eq('id', user.id)
-      .single();
-    
+    const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).single();
     setUserName(profile?.full_name || user.email?.split('@')[0] || 'User');
 
     const now = new Date();
@@ -51,7 +45,7 @@ export default function Dashboard() {
     const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
 
-    const [cashbook, lastMonthCashbook, invoices, customers, stock, tasks, appointments, emailAnalytics, segments, proposals] = await Promise.all([
+    const [cashbook, lastMonthCashbook, invoices, customers, stock, tasks, appointments, emailAnalytics, segments] = await Promise.all([
       supabase.from('cashbook_transactions').select('*').eq('user_id', user.id).gte('date', startOfMonth.toISOString()),
       supabase.from('cashbook_transactions').select('*').eq('user_id', user.id).gte('date', lastMonth.toISOString()).lte('date', endOfLastMonth.toISOString()),
       supabase.from('invoices').select('*').eq('user_id', user.id),
@@ -60,8 +54,7 @@ export default function Dashboard() {
       supabase.from('tasks').select('*').eq('user_id', user.id),
       supabase.from('appointments').select('*').eq('user_id', user.id).gte('date', now.toISOString()),
       supabase.from('email_analytics').select('*').eq('user_id', user.id),
-      supabase.from('customer_segments').select('*').eq('user_id', user.id),
-      supabase.from('proposals').select('*').eq('user_id', user.id)
+      supabase.from('customer_segments').select('*').eq('user_id', user.id)
     ]);
 
     const revenue = cashbook.data?.filter(t => t.type === 'income').reduce((s, t) => s + parseFloat(t.amount), 0) || 0;
@@ -95,10 +88,6 @@ export default function Dashboard() {
     const atRisk = segments.data?.filter(s => s.segment === 'at_risk').length || 0;
     const activeCustomers = segments.data?.filter(s => s.segment === 'active').length || 0;
 
-    const proposalsSent = proposals.data?.filter(p => p.status === 'sent').length || 0;
-    const proposalsAccepted = proposals.data?.filter(p => p.status === 'accepted').length || 0;
-    const proposalWinRate = proposalsSent > 0 ? (proposalsAccepted / proposalsSent) * 100 : 0;
-
     setStats({
       revenue, expense, profit, margin, revenueTrend, expenseTrend,
       pendingInvoices: pendingInvoices.length,
@@ -114,23 +103,20 @@ export default function Dashboard() {
       totalTasks,
       upcomingAppointments: appointments.data?.length || 0,
       emailOpenRate: openRate,
-      emailClickRate: clickRate,
-      proposalWinRate
+      emailClickRate: clickRate
     });
 
     setTrends({ revenueTrend, expenseTrend });
 
-    // AI Suggestions
     const suggestions = [];
-    if (overdueInvoices.length > 0) suggestions.push({ icon: AlertCircle, color: 'text-red-500', text: `${overdueInvoices.length} overdue invoices - Send reminders now`, action: '/business/invoice-reminders' });
-    if (lowStock.length > 0) suggestions.push({ icon: Package, color: 'text-orange-500', text: `${lowStock.length} items low on stock - Generate purchase orders`, action: '/business/inventory-intelligence' });
-    if (atRisk > 0) suggestions.push({ icon: Users, color: 'text-yellow-500', text: `${atRisk} customers at risk - Launch re-engagement campaign`, action: '/business/customer-intelligence' });
-    if (margin < 10) suggestions.push({ icon: TrendingDown, color: 'text-red-500', text: 'Low profit margin - Review pricing strategy', action: '/reports/profit-loss' });
-    if (openRate < 20) suggestions.push({ icon: Mail, color: 'text-blue-500', text: 'Low email open rate - Improve subject lines', action: '/marketing/email-analytics' });
-    if (taskCompletion < 50) suggestions.push({ icon: CheckCircle, color: 'text-purple-500', text: `${totalTasks - completedTasks} pending tasks - Prioritize completion`, action: '/business/tasks' });
+    if (overdueInvoices.length > 0) suggestions.push({ icon: AlertCircle, color: 'text-red-500', text: `${overdueInvoices.length} overdue invoices`, action: '/business/invoice-reminders' });
+    if (lowStock.length > 0) suggestions.push({ icon: Package, color: 'text-orange-500', text: `${lowStock.length} items low on stock`, action: '/business/inventory-intelligence' });
+    if (atRisk > 0) suggestions.push({ icon: Users, color: 'text-yellow-500', text: `${atRisk} customers at risk`, action: '/business/customer-intelligence' });
+    if (margin < 10) suggestions.push({ icon: TrendingDown, color: 'text-red-500', text: 'Low profit margin', action: '/reports/profit-loss' });
+    if (openRate < 20) suggestions.push({ icon: Mail, color: 'text-blue-500', text: 'Low email open rate', action: '/marketing/email-analytics' });
+    if (taskCompletion < 50) suggestions.push({ icon: CheckCircle, color: 'text-purple-500', text: `${totalTasks - completedTasks} pending tasks`, action: '/business/tasks' });
     setAiSuggestions(suggestions);
 
-    // Recent Activity
     const recent = cashbook.data?.slice(0, 8).map(t => ({
       text: `${t.type === 'income' ? '+' : '-'}${formatAmount(t.amount)} - ${t.description}`,
       time: new Date(t.date).toLocaleDateString(),
@@ -138,7 +124,6 @@ export default function Dashboard() {
     })) || [];
     setRecentActivity(recent);
 
-    // Top Customers
     const customerRevenue = customers.data?.map(c => {
       const total = invoices.data?.filter(i => i.customer_id === c.id && i.payment_status === 'paid').reduce((s, i) => s + parseFloat(i.total_amount), 0) || 0;
       return { ...c, revenue: total };
@@ -147,7 +132,6 @@ export default function Dashboard() {
 
     setLowStockItems(lowStock.slice(0, 5));
 
-    // Upcoming Events
     const events = [
       ...appointments.data?.slice(0, 3).map(a => ({ type: 'appointment', text: a.title, time: new Date(a.date).toLocaleString() })) || [],
       ...tasks.data?.filter(t => t.status === 'pending' && t.due_date).slice(0, 2).map(t => ({ type: 'task', text: t.title, time: new Date(t.due_date).toLocaleString() })) || []
@@ -158,7 +142,6 @@ export default function Dashboard() {
   return (
     <div className="w-full h-full overflow-y-auto p-4">
       <div className="space-y-4">
-        {/* Header with Greeting */}
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold">{getGreeting()}, {userName}</h1>
@@ -167,7 +150,6 @@ export default function Dashboard() {
           <p className="text-xs text-muted-foreground">{new Date().toLocaleTimeString()}</p>
         </div>
 
-        {/* AI Suggestions Banner */}
         {aiSuggestions.length > 0 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-lg p-3">
             <div className="flex items-center gap-2 mb-2">
@@ -186,7 +168,6 @@ export default function Dashboard() {
           </motion.div>
         )}
 
-        {/* Key Metrics Grid */}
         <div className="grid grid-cols-6 gap-3">
           <div className="bg-card border rounded-lg p-3">
             <div className="flex items-center justify-between mb-2">
@@ -195,7 +176,7 @@ export default function Dashboard() {
                 {trends.revenueTrend >= 0 ? '↑' : '↓'} {Math.abs(trends.revenueTrend || 0).toFixed(1)}%
               </span>
             </div>
-            <p className="text-lg font-bold truncate">{formatAmount(stats.revenue || 0)}</p>
+            <p className="text-lg font-bold">{formatAmount(stats.revenue || 0)}</p>
             <p className="text-xs text-muted-foreground">Revenue</p>
           </div>
 
@@ -206,7 +187,7 @@ export default function Dashboard() {
                 {trends.expenseTrend >= 0 ? '↑' : '↓'} {Math.abs(trends.expenseTrend || 0).toFixed(1)}%
               </span>
             </div>
-            <p className="text-lg font-bold truncate">{formatAmount(stats.expense || 0)}</p>
+            <p className="text-lg font-bold">{formatAmount(stats.expense || 0)}</p>
             <p className="text-xs text-muted-foreground">Expenses</p>
           </div>
 
@@ -215,14 +196,14 @@ export default function Dashboard() {
               <TrendingUp className="w-5 h-5 text-blue-500" />
               <span className="text-xs text-blue-500">{(stats.margin || 0).toFixed(1)}%</span>
             </div>
-            <p className="text-lg font-bold truncate">{formatAmount(stats.profit || 0)}</p>
+            <p className="text-lg font-bold">{formatAmount(stats.profit || 0)}</p>
             <p className="text-xs text-muted-foreground">Profit</p>
           </div>
 
           <div className="bg-card border rounded-lg p-3">
             <div className="flex items-center justify-between mb-2">
               <FileText className="w-5 h-5 text-orange-500" />
-              {stats.overdueInvoices > 0 && <AlertCircle className="w-5 h-5 text-red-500" />}
+              {stats.overdueInvoices > 0 && <AlertCircle className="w-4 h-4 text-red-500" />}
             </div>
             <p className="text-lg font-bold">{stats.pendingInvoices || 0}</p>
             <p className="text-xs text-muted-foreground">{stats.overdueInvoices || 0} overdue</p>
@@ -240,52 +221,49 @@ export default function Dashboard() {
           <div className="bg-card border rounded-lg p-3">
             <div className="flex items-center justify-between mb-2">
               <Package className="w-5 h-5 text-yellow-500" />
-              {stats.lowStock > 0 && <AlertCircle className="w-5 h-5 text-red-500" />}
+              {stats.lowStock > 0 && <AlertCircle className="w-4 h-4 text-red-500" />}
             </div>
-            <p className="text-lg font-bold truncate">{formatAmount(stats.totalStock || 0)}</p>
+            <p className="text-lg font-bold">{formatAmount(stats.totalStock || 0)}</p>
             <p className="text-xs text-muted-foreground">{stats.lowStock || 0} low stock</p>
           </div>
         </div>
 
-        {/* Progress Bars */}
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-card border rounded-lg p-3">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-xs font-medium">Task Completion</span>
+              <span className="text-sm font-medium">Task Completion</span>
               <span className="text-xs text-muted-foreground">{stats.completedTasks}/{stats.totalTasks}</span>
             </div>
             <div className="w-full bg-secondary rounded-full h-2">
-              <div className="bg-green-500 h-2 rounded-full transition-all" style={{ width: `${stats.taskCompletion}%` }} />
+              <div className="bg-green-500 h-2 rounded-full" style={{ width: `${stats.taskCompletion}%` }} />
             </div>
             <p className="text-xs text-muted-foreground mt-1">{stats.taskCompletion?.toFixed(0)}% complete</p>
           </div>
 
           <div className="bg-card border rounded-lg p-3">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-xs font-medium">Invoice Collection</span>
+              <span className="text-sm font-medium">Invoice Collection</span>
               <span className="text-xs text-muted-foreground">{stats.collectionRate?.toFixed(0)}%</span>
             </div>
             <div className="w-full bg-secondary rounded-full h-2">
-              <div className="bg-blue-500 h-2 rounded-full transition-all" style={{ width: `${stats.collectionRate}%` }} />
+              <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${stats.collectionRate}%` }} />
             </div>
             <p className="text-xs text-muted-foreground mt-1">{stats.collectionRate >= 80 ? 'Excellent' : stats.collectionRate >= 60 ? 'Good' : 'Needs improvement'}</p>
           </div>
 
           <div className="bg-card border rounded-lg p-3">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-xs font-medium">Email Engagement</span>
+              <span className="text-sm font-medium">Email Engagement</span>
               <span className="text-xs text-muted-foreground">{stats.emailOpenRate?.toFixed(1)}%</span>
             </div>
             <div className="w-full bg-secondary rounded-full h-2">
-              <div className="bg-purple-500 h-2 rounded-full transition-all" style={{ width: `${stats.emailOpenRate}%` }} />
+              <div className="bg-purple-500 h-2 rounded-full" style={{ width: `${stats.emailOpenRate}%` }} />
             </div>
             <p className="text-xs text-muted-foreground mt-1">{stats.emailClickRate?.toFixed(1)}% click rate</p>
           </div>
         </div>
 
-        {/* Main Content Grid */}
         <div className="grid grid-cols-3 gap-3">
-          {/* Recent Activity */}
           <div className="bg-card border rounded-lg p-3">
             <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
               <Clock className="w-4 h-4" />
@@ -295,13 +273,12 @@ export default function Dashboard() {
               {recentActivity.map((a, i) => (
                 <div key={i} className="flex items-center justify-between text-xs">
                   <span className={a.type === 'income' ? 'text-green-500' : 'text-red-500'}>{a.text}</span>
-                  <span className="text-xs text-muted-foreground">{a.time}</span>
+                  <span className="text-muted-foreground">{a.time}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Top Customers */}
           <div className="bg-card border rounded-lg p-3">
             <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
               <Users className="w-4 h-4" />
@@ -310,22 +287,19 @@ export default function Dashboard() {
             <div className="space-y-1">
               {topCustomers.map((c, i) => (
                 <div key={i} className="flex items-center justify-between text-xs">
-                  <span className="truncate">{c.name}</span>
+                  <span>{c.name}</span>
                   <span className="font-medium">{formatAmount(c.revenue || 0)}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Quick Check-In */}
           <div>
             <QuickCheckIn />
           </div>
         </div>
 
-        {/* Bottom Row */}
         <div className="grid grid-cols-2 gap-3">
-          {/* Low Stock Alert */}
           <div className="bg-card border rounded-lg p-3">
             <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
               <Package className="w-4 h-4" />
@@ -334,14 +308,14 @@ export default function Dashboard() {
             <div className="space-y-1">
               {lowStockItems.map((item, i) => (
                 <div key={i} className="flex items-center justify-between text-xs">
-                  <span className="truncate">{item.name}</span>
+                  <span>{item.name}</span>
                   <span className="text-red-500 font-medium">{item.quantity} left</span>
                 </div>
               ))}
               {lowStockItems.length === 0 && <p className="text-xs text-muted-foreground">All items in stock</p>}
             </div>
           </div>
-          {/* Upcoming Events */}
+
           <div className="bg-card border rounded-lg p-3">
             <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
               <Calendar className="w-4 h-4" />
@@ -353,7 +327,7 @@ export default function Dashboard() {
                   <div className={`w-2 h-2 rounded-full mt-1 ${e.type === 'appointment' ? 'bg-blue-500' : 'bg-green-500'}`} />
                   <div className="flex-1">
                     <p>{e.text}</p>
-                    <p className="text-xs text-muted-foreground">{e.time}</p>
+                    <p className="text-muted-foreground">{e.time}</p>
                   </div>
                 </div>
               ))}
@@ -365,6 +339,3 @@ export default function Dashboard() {
     </div>
   );
 }
-
-
-

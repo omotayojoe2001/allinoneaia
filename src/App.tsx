@@ -13,6 +13,7 @@ import LoginPage from "@/pages/LoginPage";
 import PricingPage from "@/pages/PricingPage";
 import SupportPage from "@/pages/SupportPage";
 import FundUsPage from "@/pages/FundUsPage";
+import DashboardTest from "@/pages/DashboardTest";
 import Dashboard from "@/pages/Dashboard";
 import ChatPage from "@/pages/ChatPage";
 import WhatsAppChatbots from "@/pages/WhatsAppChatbots";
@@ -120,6 +121,7 @@ const App = () => (
               <Route path="/fund-us" element={<FundUsPage />} />
               <Route path="/pay/:invoiceId" element={<InvoicePaymentPage />} />
               <Route path="/dashboard" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
+              <Route path="/dashboard-test" element={<ProtectedRoute><AppLayout><DashboardTest /></AppLayout></ProtectedRoute>} />
               <Route path="/ai-agent" element={<ProtectedRoute><AppLayout><AIAgentPage /></AppLayout></ProtectedRoute>} />
               <Route path="/chat" element={<ProtectedRoute><AppLayout><ChatPage /></AppLayout></ProtectedRoute>} />
               <Route path="/chat/:platform" element={<ProtectedRoute><AppLayout><WhatsAppChatbots /></AppLayout></ProtectedRoute>} />
