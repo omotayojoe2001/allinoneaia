@@ -1,8 +1,8 @@
-import { ArrowLeft, Plus, Eye, Download, Mail, Trash2, X, Edit, CheckCircle } from "lucide-react";
+import { ArrowLeft, Plus, Eye, Download, Mail, Trash2, X, Edit, CheckCircle, Link as LinkIcon, Copy, RefreshCw, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { recordInvoicePayment } from "@/lib/business-integration";
+import { generateInvoicePaymentLink } from "@/lib/invoice-payment";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -321,6 +321,29 @@ const InvoiceGenerator = () => {
       doc.text('TOTAL:', 140, y);
       doc.text(invoice.currency + ' ' + parseFloat(invoice.amount).toFixed(2), 210 - margin - 5, y, { align: 'right' });
 
+      // Payment Link Button (if exists)
+      if (invoice.payment_link) {
+        y += 15;
+        // Make the button clickable by adding a link annotation
+        doc.setFillColor(34, 197, 94);
+        doc.roundedRect(margin, y, 180, 12, 3, 3, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        doc.text('PAY NOW - CLICK HERE', 105, y + 8, { align: 'center' });
+        
+        // Add clickable link
+        doc.link(margin, y, 180, 12, { url: invoice.payment_link });
+        
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(9);
+        doc.setFont(undefined, 'normal');
+        y += 15;
+        doc.setTextColor(0, 0, 255);
+        doc.textWithLink(invoice.payment_link, margin, y, { url: invoice.payment_link });
+        doc.setTextColor(0, 0, 0);
+      }
+
       // Notes
       if (invoice.notes) {
         y += 10;
@@ -396,8 +419,45 @@ const InvoiceGenerator = () => {
 
   const markAsPaid = async (invoice: any) => {
     try {
+      const { recordInvoicePayment } = await import("@/lib/business-integration");
       await recordInvoicePayment(user?.id!, invoice.id, parseFloat(invoice.amount));
       toast({ title: "Success", description: "Invoice marked as paid and recorded in cash book" });
+      loadInvoices();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const generatePaymentLink = async (invoice: any) => {
+    try {
+      // Check if payment gateway is configured
+      const { data: settings } = await supabase
+        .from('payment_gateway_settings')
+        .select('*')
+        .eq('user_id', user?.id)
+        .single();
+
+      if (!settings || (!settings.paystack_enabled && !settings.flutterwave_enabled)) {
+        toast({ 
+          title: "Setup Required", 
+          description: "Please configure payment gateway in Finance Hub → Payment",
+          variant: "destructive" 
+        });
+        return;
+      }
+
+      // Generate our own payment page link
+      const link = `${window.location.origin}/pay/${invoice.id}`;
+
+      const { error } = await supabase
+        .from('invoices')
+        .update({ payment_link: link })
+        .eq('id', invoice.id);
+
+      if (error) throw error;
+      
+      await navigator.clipboard.writeText(link);
+      toast({ title: "Success", description: "Payment link copied to clipboard!" });
       loadInvoices();
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -409,7 +469,7 @@ const InvoiceGenerator = () => {
   return (
     <div className="flex-1 overflow-y-auto px-6 py-4">
       <PageAIAgent {...pageAgentConfigs.invoices} />
-      <div className="max-w-6xl mx-auto space-y-4">
+      <div className="w-full space-y-4">
         <div className="flex items-center justify-between">
           <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetForm(); }}>
             <DialogTrigger asChild>
@@ -556,6 +616,7 @@ const InvoiceGenerator = () => {
                 <th className="text-left px-4 py-3 text-sm font-medium">Customer</th>
                 <th className="text-left px-4 py-3 text-sm font-medium">Amount</th>
                 <th className="text-left px-4 py-3 text-sm font-medium">Status</th>
+                <th className="text-left px-4 py-3 text-sm font-medium">Payment Link</th>
                 <th className="text-left px-4 py-3 text-sm font-medium">Due Date</th>
                 <th className="text-right px-4 py-3 text-sm font-medium">Actions</th>
               </tr>
@@ -574,6 +635,45 @@ const InvoiceGenerator = () => {
                     }`}>
                       {inv.payment_status || 'unpaid'}
                     </span>
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    {inv.payment_link ? (
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={inv.payment_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-blue-500 hover:text-blue-600"
+                          title="Open payment page"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(inv.payment_link);
+                            toast({ title: "Copied!", description: "Payment link copied" });
+                          }}
+                          className="text-blue-500 hover:text-blue-600"
+                          title="Copy payment link"
+                        >
+                          <Copy className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={() => generatePaymentLink(inv)}
+                          className="text-orange-500 hover:text-orange-600"
+                          title="Regenerate payment link"
+                        >
+                          <RefreshCw className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => generatePaymentLink(inv)}
+                        className="text-xs text-blue-500 hover:text-blue-600 underline"
+                      >
+                        Generate
+                      </button>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-sm">{inv.due_date ? new Date(inv.due_date).toLocaleDateString() : '-'}</td>
                   <td className="px-4 py-3 text-sm text-right flex gap-2 justify-end">

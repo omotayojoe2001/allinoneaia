@@ -85,6 +85,7 @@ import AIAnalyticsHub from "@/pages/reports/AIAnalyticsHub";
 import ContentHub from "@/pages/content/ContentHub";
 import SocialMediaHub from "@/pages/social/SocialMediaHub";
 import EmailMarketingHub from "@/pages/marketing/EmailMarketingHub";
+import InvoicePaymentPage from "@/pages/InvoicePaymentPage";
 import { ReminderScheduler } from "@/components/ReminderScheduler";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
@@ -117,6 +118,7 @@ const App = () => (
               <Route path="/pricing" element={<PricingPage />} />
               <Route path="/support" element={<SupportPage />} />
               <Route path="/fund-us" element={<FundUsPage />} />
+              <Route path="/pay/:invoiceId" element={<InvoicePaymentPage />} />
               <Route path="/dashboard" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
               <Route path="/ai-agent" element={<ProtectedRoute><AppLayout><AIAgentPage /></AppLayout></ProtectedRoute>} />
               <Route path="/chat" element={<ProtectedRoute><AppLayout><ChatPage /></AppLayout></ProtectedRoute>} />

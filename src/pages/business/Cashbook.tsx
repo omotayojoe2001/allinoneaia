@@ -44,7 +44,7 @@ const Cashbook = () => {
   return (
     <div className="flex-1 overflow-y-auto px-6 py-4">
       <PageAIAgent {...pageAgentConfigs.cashbook} />
-      <div className="max-w-6xl mx-auto space-y-4">
+      <div className="w-full space-y-4">
         <div className="flex items-center justify-between">
           <button onClick={() => setShowModal(true)} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2">
             <Plus className="w-4 h-4" /> Add Transaction

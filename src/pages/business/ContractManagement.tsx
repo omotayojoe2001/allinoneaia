@@ -219,7 +219,7 @@ _________________          _________________
 
   return (
     <div className="flex-1 overflow-y-auto px-6 py-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="w-full">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">

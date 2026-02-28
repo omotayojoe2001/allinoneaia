@@ -358,7 +358,7 @@ export default function StaffManagement() {
 
   return (
     <div className="flex-1 overflow-y-auto px-6 py-4">
-      <div className="max-w-6xl mx-auto space-y-4">
+      <div className="w-full space-y-4">
       <div className="flex justify-between items-center">
         <div className="flex gap-2">
           <Button variant={activeTab === "staff" ? "default" : "outline"} onClick={() => setActiveTab("staff")}>Staff</Button>

@@ -92,7 +92,7 @@ const InvoiceReminders = () => {
 
   return (
     <div className="flex-1 overflow-y-auto px-6 py-4">
-      <div className="max-w-6xl mx-auto space-y-4">
+      <div className="w-full space-y-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <Bell className="w-6 h-6 text-primary" />

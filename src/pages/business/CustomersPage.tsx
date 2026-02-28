@@ -186,7 +186,7 @@ export default function CustomersPage() {
   return (
     <div className="flex-1 overflow-y-auto px-6 py-8">
       <PageAIAgent {...pageAgentConfigs.customers} />
-      <div className="max-w-6xl mx-auto">
+      <div className="w-full">
       <Link to="/business" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
         <ArrowLeft className="w-4 h-4" /> Back
       </Link>
