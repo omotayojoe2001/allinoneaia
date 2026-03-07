@@ -19,7 +19,7 @@ const WhatsAppTest = () => {
       const response = await fetch('https://gate.whapi.cloud/messages/text', {
         method: 'POST',
         headers: {
-          'Authorization': 'Bearer DURNULBh7CQBFgsSePFdryuBlDSMtWq9',
+          'Authorization': `Bearer ${import.meta.env.VITE_WHAPI_TOKEN || ''}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({

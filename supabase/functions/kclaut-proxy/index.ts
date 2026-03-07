@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
-const KCLAUT_API_KEY = "d5139b5b85d03d284e20f21ece1d2c09";
+const KCLAUT_API_KEY = Deno.env.get('KCLAUT_API_KEY') || '';
 const KCLAUT_BASE_URL = "https://thekclaut.com/api/v2";
 
 const corsHeaders = {

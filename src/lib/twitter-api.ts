@@ -6,9 +6,9 @@ interface TweetData {
 }
 
 const DEFAULT_CREDENTIALS = {
-  consumer_key: 'qdeOeZgmiTztJ7jAQvSUqiwN6',
-  consumer_secret: '78zvK9UggJMcZQ2O47Suzhcal5AF2GagWP66f8PhE7oLd2pDg9',
-  bearer_token: 'AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA'
+  consumer_key: import.meta.env.VITE_TWITTER_CONSUMER_KEY || '',
+  consumer_secret: import.meta.env.VITE_TWITTER_CONSUMER_SECRET || '',
+  bearer_token: import.meta.env.VITE_TWITTER_BEARER_TOKEN || ''
 };
 
 export const twitterAPI = {

@@ -1,4 +1,4 @@
-const KCLAUT_API_KEY = "d5139b5b85d03d284e20f21ece1d2c09";
+const KCLAUT_API_KEY = import.meta.env.VITE_KCLAUT_API_KEY || '';
 const KCLAUT_BASE_URL = "https://thekclaut.com/api/v2";
 // KClaut API has CORS and HTTP/2 issues - use static data for now
 // To enable API: Set USE_API=true and deploy your own backend proxy
