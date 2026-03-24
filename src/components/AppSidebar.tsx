@@ -166,22 +166,25 @@ const AppSidebar = () => {
         className="fixed left-0 top-0 bottom-0 flex flex-col bg-sidebar border-r border-sidebar-border z-50 lg:z-40"
       >
         {/* Logo */}
-        <div className="h-16 flex items-center px-4 gap-3 border-b border-sidebar-border">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
-            <Sparkles className="w-4 h-4 text-primary-foreground" />
+        <div className="h-16 flex items-center justify-between px-4 gap-3 border-b border-sidebar-border">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
+              <Sparkles className="w-4 h-4 text-primary-foreground" />
+            </div>
+            <AnimatePresence>
+              {!collapsed && (
+                <motion.span
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: "auto" }}
+                  exit={{ opacity: 0, width: 0 }}
+                  className="font-bold text-foreground text-lg whitespace-nowrap overflow-hidden"
+                >
+                  BizSuiteAI
+                </motion.span>
+              )}
+            </AnimatePresence>
           </div>
-          <AnimatePresence>
-            {!collapsed && (
-              <motion.span
-                initial={{ opacity: 0, width: 0 }}
-                animate={{ opacity: 1, width: "auto" }}
-                exit={{ opacity: 0, width: 0 }}
-                className="font-bold text-foreground text-lg whitespace-nowrap overflow-hidden"
-              >
-                BizSuiteAI
-              </motion.span>
-            )}
-          </AnimatePresence>
+          <ThemeToggle />
         </div>
 
         {/* Nav */}
@@ -329,11 +332,6 @@ const AppSidebar = () => {
               )}
             </AnimatePresence>
           </button>
-
-          <div className="flex items-center gap-3 px-3 py-2.5">
-            {!collapsed && <span className="text-sm text-sidebar-foreground">Theme</span>}
-            <ThemeToggle />
-          </div>
 
           {!isMobile && (
             <button
