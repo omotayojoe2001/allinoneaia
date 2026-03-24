@@ -39,6 +39,7 @@ import {
   Clock,
   Menu,
   X,
+  RotateCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -400,6 +401,21 @@ const AppSidebar = () => {
               </div>
             );
           })}
+
+          <button
+            onClick={() => window.location.reload()}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground hover:bg-sidebar-accent transition-colors w-full"
+            title="Reload page"
+          >
+            <RotateCw className="w-5 h-5 flex-shrink-0" />
+            <AnimatePresence>
+              {!collapsed && (
+                <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  Reload
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </button>
 
           <button
             onClick={handleLogout}

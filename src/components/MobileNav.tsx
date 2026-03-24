@@ -8,6 +8,7 @@ import {
   Bell,
   Settings,
   Sparkles,
+  RotateCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
@@ -17,7 +18,7 @@ const mobileNavItems = [
   { icon: Sparkles, label: 'AI', path: '/ai-agent' },
   { icon: Briefcase, label: 'Business', path: '/business' },
   { icon: Palette, label: 'Marketing', path: '/content' },
-  { icon: Settings, label: 'Settings', path: '/settings' },
+  { icon: RotateCw, label: 'Reload', path: null, action: () => window.location.reload() },
 ];
 
 const MobileNav = () => {
@@ -31,11 +32,28 @@ const MobileNav = () => {
     >
       <div className="flex items-center justify-around h-16">
         {mobileNavItems.map((item) => {
-          const isActive = location.pathname === item.path || location.pathname.startsWith(item.path);
+          const isActive = item.path && (location.pathname === item.path || location.pathname.startsWith(item.path));
+          
+          if (item.action) {
+            return (
+              <button
+                key={item.label}
+                onClick={item.action}
+                className={cn(
+                  'flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors relative',
+                  'text-sidebar-foreground hover:text-primary'
+                )}
+              >
+                <item.icon className="w-5 h-5" />
+                <span className="text-xs font-medium">{item.label}</span>
+              </button>
+            );
+          }
+
           return (
             <Link
               key={item.path}
-              to={item.path}
+              to={item.path || '#'}
               className={cn(
                 'flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors relative',
                 isActive
