@@ -18,7 +18,7 @@ const FundUsPage = () => (
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
             <Sparkles className="w-4 h-4 text-primary-foreground" />
           </div>
-          <span className="font-bold text-foreground text-lg">NexusAI</span>
+          <span className="font-bold text-foreground text-lg">BizSuiteAI</span>
         </Link>
         <nav className="hidden md:flex items-center gap-6">
           <Link to="/pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Pricing</Link>
@@ -33,7 +33,7 @@ const FundUsPage = () => (
       </div>
     </header>
     <div className="max-w-4xl mx-auto px-6 py-16 text-center">
-      <h1 className="text-3xl font-bold text-foreground mb-3">Fund the Future of NexusAI</h1>
+      <h1 className="text-3xl font-bold text-foreground mb-3">Fund the Future of BizSuiteAI</h1>
       <p className="text-muted-foreground mb-12 max-w-xl mx-auto">
         We're building the most powerful all-in-one AI workspace. Your support helps us ship faster and stay independent.
       </p>

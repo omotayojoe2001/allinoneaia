@@ -11,7 +11,7 @@ const PricingPage = () => (
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
             <Sparkles className="w-4 h-4 text-primary-foreground" />
           </div>
-          <span className="font-bold text-foreground text-lg">NexusAI</span>
+          <span className="font-bold text-foreground text-lg">BizSuiteAI</span>
         </Link>
         <nav className="hidden md:flex items-center gap-6">
           <Link to="/pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Pricing</Link>

@@ -48,7 +48,7 @@ const ForgotPasswordPage = () => {
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
             <Sparkles className="w-4 h-4 text-primary-foreground" />
           </div>
-          <span className="font-bold text-foreground text-lg">NexusAI</span>
+          <span className="font-bold text-foreground text-lg">BizSuiteAI</span>
         </Link>
 
         <div>
@@ -60,7 +60,7 @@ const ForgotPasswordPage = () => {
           </p>
         </div>
 
-        <p className="text-xs text-muted-foreground">© 2026 NexusAI. All rights reserved.</p>
+        <p className="text-xs text-muted-foreground">© 2026 BizSuiteAI. All rights reserved.</p>
       </div>
 
       {/* Right form panel */}
@@ -70,7 +70,7 @@ const ForgotPasswordPage = () => {
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-primary-foreground" />
             </div>
-            <span className="font-bold text-foreground text-lg">NexusAI</span>
+            <span className="font-bold text-foreground text-lg">BizSuiteAI</span>
           </Link>
           <div className="flex items-center gap-3 ml-auto">
             <ThemeToggle />

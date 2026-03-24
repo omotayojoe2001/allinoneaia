@@ -142,7 +142,7 @@ const AppSidebar = () => {
               exit={{ opacity: 0, width: 0 }}
               className="font-bold text-foreground text-lg whitespace-nowrap overflow-hidden"
             >
-              NexusAI
+              BizSuiteAI
             </motion.span>
           )}
         </AnimatePresence>

@@ -45,19 +45,19 @@ const LoginPage = () => {
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
             <Sparkles className="w-4 h-4 text-primary-foreground" />
           </div>
-          <span className="font-bold text-foreground text-lg">NexusAI</span>
+          <span className="font-bold text-foreground text-lg">BizSuiteAI</span>
         </Link>
 
         <div>
           <h2 className="text-3xl font-bold text-foreground mb-4">
-            Welcome back to <span className="text-primary">NexusAI</span>
+            Welcome back to <span className="text-primary">BizSuiteAI</span>
           </h2>
           <p className="text-muted-foreground leading-relaxed">
             Pick up right where you left off. Your chatbots, automations, content, and analytics are waiting for you.
           </p>
         </div>
 
-        <p className="text-xs text-muted-foreground">© 2026 NexusAI. All rights reserved.</p>
+        <p className="text-xs text-muted-foreground">© 2026 BizSuiteAI. All rights reserved.</p>
       </div>
 
       {/* Right form panel */}
@@ -67,7 +67,7 @@ const LoginPage = () => {
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-primary-foreground" />
             </div>
-            <span className="font-bold text-foreground text-lg">NexusAI</span>
+            <span className="font-bold text-foreground text-lg">BizSuiteAI</span>
           </Link>
           <div className="flex items-center gap-3 ml-auto">
             <ThemeToggle />

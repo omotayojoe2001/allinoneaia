@@ -199,7 +199,7 @@ const LandingPage = () => {
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-primary-foreground" />
             </div>
-            <span className="font-bold text-foreground text-lg">NexusAI</span>
+            <span className="font-bold text-foreground text-lg">BizSuiteAI</span>
           </div>
           <nav className="hidden md:flex items-center gap-6">
             <Link to="/pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Pricing</Link>
@@ -415,7 +415,7 @@ const LandingPage = () => {
                 <Sparkles className="w-8 h-8 text-primary" />
               </motion.div>
               <h3 className="text-2xl font-bold text-foreground mb-2">See It In Action</h3>
-              <p className="text-muted-foreground">Watch how NexusAI transforms your workflow</p>
+              <p className="text-muted-foreground">Watch how BizSuiteAI transforms your workflow</p>
             </div>
 
             {/* Floating feature cards */}
@@ -480,7 +480,7 @@ const LandingPage = () => {
           className="mb-20"
         >
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-foreground mb-3">See NexusAI in Action</h2>
+            <h2 className="text-3xl font-bold text-foreground mb-3">See BizSuiteAI in Action</h2>
             <p className="text-muted-foreground">Watch how easy it is to automate your entire business</p>
           </div>
           <div className="rounded-2xl overflow-hidden relative aspect-video max-w-4xl mx-auto shadow-2xl">
@@ -488,7 +488,7 @@ const LandingPage = () => {
               width="100%"
               height="100%"
               src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-              title="NexusAI Platform Demo"
+              title="BizSuiteAI Platform Demo"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
@@ -511,7 +511,7 @@ const LandingPage = () => {
                   Built by Creators, for Creators
                 </h2>
                 <p className="text-muted-foreground text-lg mb-6">
-                  We understand the struggle of managing multiple tools, paying for expensive subscriptions, and wasting time on repetitive tasks. That's why we built NexusAI - to give you everything you need in one place.
+                  We understand the struggle of managing multiple tools, paying for expensive subscriptions, and wasting time on repetitive tasks. That's why we built BizSuiteAI - to give you everything you need in one place.
                 </p>
                 <div className="flex items-center gap-4">
                   <div className="flex -space-x-3">
@@ -696,7 +696,7 @@ const LandingPage = () => {
               Everything AI. One Platform.
             </h2>
             <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Join thousands of businesses automating their workflow and growing faster with NexusAI
+              Join thousands of businesses automating their workflow and growing faster with BizSuiteAI
             </p>
             <div className="flex items-center justify-center gap-4 flex-wrap">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -722,7 +722,7 @@ const LandingPage = () => {
                 <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
                   <Sparkles className="w-3.5 h-3.5 text-primary-foreground" />
                 </div>
-                <span className="font-bold text-foreground">NexusAI</span>
+                <span className="font-bold text-foreground">BizSuiteAI</span>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Your all-in-one AI workspace for automation, content, and growth.
@@ -757,7 +757,7 @@ const LandingPage = () => {
             </div>
           </div>
           <div className="border-t border-border pt-6 flex flex-col md:flex-row items-center justify-between gap-3">
-            <p className="text-xs text-muted-foreground">© 2026 NexusAI. All rights reserved.</p>
+            <p className="text-xs text-muted-foreground">© 2026 BizSuiteAI. All rights reserved.</p>
             <div className="flex items-center gap-4 text-xs text-muted-foreground">
               <Link to="/" className="hover:text-foreground transition-colors">Twitter</Link>
               <Link to="/" className="hover:text-foreground transition-colors">LinkedIn</Link>

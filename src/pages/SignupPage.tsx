@@ -37,7 +37,7 @@ const SignupPage = () => {
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
             <Sparkles className="w-4 h-4 text-primary-foreground" />
           </div>
-          <span className="font-bold text-foreground text-lg">NexusAI</span>
+          <span className="font-bold text-foreground text-lg">BizSuiteAI</span>
         </Link>
 
         <div>
@@ -45,7 +45,7 @@ const SignupPage = () => {
             Start automating your <span className="text-primary">entire workflow</span> today.
           </h2>
           <p className="text-muted-foreground leading-relaxed">
-            Join thousands of businesses using NexusAI to build chatbots, create content, grow social media, and automate everything — all from one platform.
+            Join thousands of businesses using BizSuiteAI to build chatbots, create content, grow social media, and automate everything — all from one platform.
           </p>
           <div className="mt-8 space-y-3">
             {["No credit card required", "Free plan available", "Cancel anytime"].map((t) => (
@@ -59,7 +59,7 @@ const SignupPage = () => {
           </div>
         </div>
 
-        <p className="text-xs text-muted-foreground">© 2026 NexusAI. All rights reserved.</p>
+        <p className="text-xs text-muted-foreground">© 2026 BizSuiteAI. All rights reserved.</p>
       </div>
 
       {/* Right form panel */}
@@ -69,7 +69,7 @@ const SignupPage = () => {
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-primary-foreground" />
             </div>
-            <span className="font-bold text-foreground text-lg">NexusAI</span>
+            <span className="font-bold text-foreground text-lg">BizSuiteAI</span>
           </Link>
           <div className="flex items-center gap-3 ml-auto">
             <ThemeToggle />
@@ -85,7 +85,7 @@ const SignupPage = () => {
         <div className="flex-1 flex items-center justify-center px-6">
           <div className="w-full max-w-md">
             <h1 className="text-2xl font-bold text-foreground mb-1">Create your account</h1>
-            <p className="text-sm text-muted-foreground mb-8">Get started with your free NexusAI workspace.</p>
+            <p className="text-sm text-muted-foreground mb-8">Get started with your free BizSuiteAI workspace.</p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
