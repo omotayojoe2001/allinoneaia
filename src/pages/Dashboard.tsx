@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { Link } from "react-router-dom";
 import { QuickCheckIn } from "@/components/QuickCheckIn";
+import AIBriefingCard from "@/components/AIBriefingCard";
 import { DollarSign, TrendingUp, TrendingDown, Users, Package, FileText, AlertCircle, CheckCircle, Clock, Zap, Target, ArrowUpRight, Mail, Phone, Calendar, Briefcase, ShoppingCart, CreditCard, Bell } from "lucide-react";
 
 export default function Dashboard() {
@@ -157,6 +158,7 @@ export default function Dashboard() {
 
   return (
     <div className="w-full h-full overflow-y-auto p-4">
+      <AIBriefingCard userId={user?.id || ''} userName={userName} />
       <div className="space-y-4">
         {/* Header with Greeting */}
         <div className="flex justify-between items-center">
@@ -365,6 +367,7 @@ export default function Dashboard() {
     </div>
   );
 }
+
 
 
 
