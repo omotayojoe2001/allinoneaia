@@ -39,7 +39,6 @@ import {
   Clock,
   Menu,
   X,
-  RotateCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -94,20 +93,6 @@ const navItems = [
   { icon: Bot, label: "Chatbot Builder", path: "/chat" },
   { icon: Zap, label: "Automation", path: "/automation" },
   { icon: Bell, label: "Reminders", path: "/reminders" },
-];
-
-const bottomItems = [
-  { 
-    icon: Settings, 
-    label: "Settings", 
-    path: "/settings",
-    submenu: [
-      { label: "Billing", path: "/billing" },
-      { label: "Subscription", path: "/settings/subscription" },
-      { label: "Notifications", path: "/settings/notifications" },
-      { label: "Help Center", path: "/settings/help" },
-    ]
-  },
 ];
 
 const AppSidebar = () => {
@@ -317,108 +302,19 @@ const AppSidebar = () => {
 
         {/* Bottom */}
         <div className="py-4 px-2 space-y-1 border-t border-sidebar-border">
-          {bottomItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            const hasSubmenu = item.submenu && item.submenu.length > 0;
-            const isExpanded = expandedMenu === item.path;
-            const isSubmenuActive = hasSubmenu && item.submenu.some(sub => location.pathname === sub.path);
-            
-            return (
-              <div key={item.path}>
-                {hasSubmenu ? (
-                  <button
-                    onClick={() => toggleSubmenu(item.path)}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 group relative w-full",
-                      isActive || isSubmenuActive
-                        ? "bg-primary/10 text-primary"
-                        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                    )}
-                  >
-                    <item.icon className="w-5 h-5 flex-shrink-0" />
-                    <AnimatePresence>
-                      {!collapsed && (
-                        <motion.span
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          className="whitespace-nowrap overflow-hidden flex-1 text-left"
-                        >
-                          {item.label}
-                        </motion.span>
-                      )}
-                    </AnimatePresence>
-                    {!collapsed && (
-                      <span className="ml-auto">
-                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                      </span>
-                    )}
-                  </button>
-                ) : (
-                  <Link
-                    to={item.path}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
-                  >
-                    <item.icon className="w-5 h-5 flex-shrink-0" />
-                    <AnimatePresence>
-                      {!collapsed && (
-                        <motion.span
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          className="whitespace-nowrap overflow-hidden"
-                        >
-                          {item.label}
-                        </motion.span>
-                      )}
-                    </AnimatePresence>
-                  </Link>
-                )}
-                
-                {hasSubmenu && isExpanded && !collapsed && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="ml-8 mt-1 space-y-1"
-                  >
-                    {item.submenu.map((subItem) => (
-                      <Link
-                        key={subItem.path}
-                        to={subItem.path}
-                        className={cn(
-                          "flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors",
-                          location.pathname === subItem.path
-                            ? "bg-primary/10 text-primary"
-                            : "text-sidebar-foreground hover:bg-sidebar-accent"
-                        )}
-                      >
-                        {subItem.label}
-                      </Link>
-                    ))}
-                  </motion.div>
-                )}
-              </div>
-            );
-          })}
-
-          <button
-            onClick={() => {
-              navigate(location.pathname);
-              window.scrollTo(0, 0);
-            }}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground hover:bg-sidebar-accent transition-colors w-full"
-            title="Reload page"
+          <Link
+            to="/settings"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
           >
-            <RotateCw className="w-5 h-5 flex-shrink-0" />
+            <Settings className="w-5 h-5 flex-shrink-0" />
             <AnimatePresence>
               {!collapsed && (
                 <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                  Reload
+                  Settings
                 </motion.span>
               )}
             </AnimatePresence>
-          </button>
+          </Link>
 
           <button
             onClick={handleLogout}

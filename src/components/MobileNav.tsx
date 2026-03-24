@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   Bot,
@@ -6,9 +6,7 @@ import {
   Palette,
   Briefcase,
   Bell,
-  Settings,
   Sparkles,
-  RotateCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
@@ -18,12 +16,11 @@ const mobileNavItems = [
   { icon: Sparkles, label: 'AI', path: '/ai-agent' },
   { icon: Briefcase, label: 'Business', path: '/business' },
   { icon: Palette, label: 'Marketing', path: '/content' },
-  { icon: RotateCw, label: 'Reload', path: null, action: 'reload' },
+  { icon: Bell, label: 'Reminders', path: '/reminders' },
 ];
 
 const MobileNav = () => {
   const location = useLocation();
-  const navigate = useNavigate();
 
   return (
     <motion.nav
@@ -35,29 +32,10 @@ const MobileNav = () => {
         {mobileNavItems.map((item) => {
           const isActive = item.path && (location.pathname === item.path || location.pathname.startsWith(item.path));
           
-          if (item.action === 'reload') {
-            return (
-              <button
-                key={item.label}
-                onClick={() => {
-                  navigate(location.pathname);
-                  window.scrollTo(0, 0);
-                }}
-                className={cn(
-                  'flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors relative',
-                  'text-sidebar-foreground hover:text-primary'
-                )}
-              >
-                <item.icon className="w-5 h-5" />
-                <span className="text-xs font-medium">{item.label}</span>
-              </button>
-            );
-          }
-
           return (
             <Link
               key={item.path}
-              to={item.path || '#'}
+              to={item.path}
               className={cn(
                 'flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors relative',
                 isActive
