@@ -96,6 +96,11 @@ import ContentHub from "@/pages/content/ContentHub";
 import SocialMediaHub from "@/pages/social/SocialMediaHub";
 import EmailMarketingHub from "@/pages/marketing/EmailMarketingHub";
 import InvoicePaymentPage from "@/pages/InvoicePaymentPage";
+import SeedTemplatesPage from "@/pages/admin/SeedTemplatesPage";
+import TemplateGalleryDebugPage from "@/pages/TemplateGalleryDebugPage";
+import TemplateGalleryPage from "@/pages/TemplateGalleryPage";
+import WebsiteBuilderPage from "@/pages/WebsiteBuilderPage";
+import WebsiteBuilderTestPage from "@/pages/WebsiteBuilderTestPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -214,6 +219,11 @@ const App = () => (
                 <Route path="/life" element={<ProtectedRoute><AppLayout><LifeAutomationPage /></AppLayout></ProtectedRoute>} />
                 <Route path="/billing" element={<ProtectedRoute><AppLayout><BillingPage /></AppLayout></ProtectedRoute>} />
                 <Route path="/settings" element={<ProtectedRoute><AppLayout><SettingsPage /></AppLayout></ProtectedRoute>} />
+                <Route path="/website-builder-test" element={<ProtectedRoute><AppLayout><WebsiteBuilderTestPage /></AppLayout></ProtectedRoute>} />
+                <Route path="/templates-debug" element={<ProtectedRoute><AppLayout><TemplateGalleryDebugPage /></AppLayout></ProtectedRoute>} />
+                <Route path="/templates" element={<ProtectedRoute><AppLayout><TemplateGalleryPage /></AppLayout></ProtectedRoute>} />
+                <Route path="/website-builder/create" element={<ProtectedRoute><AppLayout><WebsiteBuilderPage /></AppLayout></ProtectedRoute>} />
+                <Route path="/admin/seed-templates" element={<ProtectedRoute><AppLayout><SeedTemplatesPage /></AppLayout></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>

@@ -135,7 +135,7 @@ CREATE INDEX idx_website_analytics_user ON website_analytics(user_id);
 
 -- Enable RLS (Row Level Security)
 ALTER TABLE templates ENABLE ROW LEVEL SECURITY;
-ALTER TABLE template_categories ENABLE ROW LEVEL SECURITY;
+-- template_categories doesn't need RLS since it's public data
 ALTER TABLE user_websites ENABLE ROW LEVEL SECURITY;
 ALTER TABLE website_customizations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE website_forms ENABLE ROW LEVEL SECURITY;
@@ -148,8 +148,7 @@ CREATE POLICY "Templates are viewable by everyone" ON templates FOR SELECT USING
 CREATE POLICY "Only admins can insert templates" ON templates FOR INSERT WITH CHECK (auth.jwt() ->> 'role' = 'admin');
 CREATE POLICY "Only admins can update templates" ON templates FOR UPDATE USING (auth.jwt() ->> 'role' = 'admin');
 
--- Template Categories: Public read
-CREATE POLICY "Categories are viewable by everyone" ON template_categories FOR SELECT USING (TRUE);
+-- Template Categories: Public read, admin write (no RLS needed - public data)
 
 -- User Websites: Users can only see their own
 CREATE POLICY "Users can view their own websites" ON user_websites FOR SELECT USING (auth.uid() = user_id);

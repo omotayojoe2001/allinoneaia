@@ -39,6 +39,7 @@ import {
   Clock,
   Menu,
   X,
+  Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -52,6 +53,7 @@ import {
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: Sparkles, label: "AI Agent", path: "/ai-agent" },
+  { icon: Globe, label: "Website Builder", path: "/templates" },
   { 
     icon: Briefcase, 
     label: "Business", 

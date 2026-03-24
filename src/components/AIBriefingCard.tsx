@@ -56,53 +56,49 @@ const AIBriefingCard = ({ userId, userName }: { userId: string; userName: string
     const show = await shouldShowBriefing();
     if (!show) return;
 
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    try {
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const [invoices, tasks, staff, stock, transactions] = await Promise.all([
-      supabase.from('invoices').select('*').eq('user_id', userId),
-      supabase.from('tasks').select('*').eq('user_id', userId),
-      supabase.from('staff').select('*').eq('user_id', userId),
-      supabase.from('stock').select('*').eq('user_id', userId),
-      supabase.from('cashbook_transactions').select('*').eq('user_id', userId).gte('date', startOfMonth.toISOString()),
-    ]);
+      const [invoices, tasks, stock, transactions] = await Promise.all([
+        supabase.from('invoices').select('*').eq('user_id', userId).catch(() => ({ data: [] })),
+        supabase.from('tasks').select('*').eq('user_id', userId).catch(() => ({ data: [] })),
+        supabase.from('stock').select('*').eq('user_id', userId).catch(() => ({ data: [] })),
+        supabase.from('cashbook_transactions').select('*').eq('user_id', userId).gte('date', startOfMonth.toISOString()).catch(() => ({ data: [] })),
+      ]);
 
-    const overdueInvoices = invoices.data?.filter(
-      (i) => i.payment_status === 'unpaid' && new Date(i.due_date) < now
-    ).length || 0;
+      const overdueInvoices = invoices.data?.filter(
+        (i) => i.payment_status === 'unpaid' && new Date(i.due_date) < now
+      ).length || 0;
 
-    const pendingTasks = tasks.data?.filter((t) => t.status === 'pending').length || 0;
+      const pendingTasks = tasks.data?.filter((t) => t.status === 'pending').length || 0;
 
-    const completedTasks = tasks.data?.filter((t) => t.status === 'completed').length || 0;
-    const taskCompletionRate = tasks.data?.length ? (completedTasks / tasks.data.length) * 100 : 0;
+      const completedTasks = tasks.data?.filter((t) => t.status === 'completed').length || 0;
+      const taskCompletionRate = tasks.data?.length ? (completedTasks / tasks.data.length) * 100 : 0;
 
-    const staffAtRisk = staff.data?.filter((s) => s.status === 'at_risk').length || 0;
+      const stockValue = stock.data?.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0) || 0;
 
-    const staffNotSignedIn = staff.data?.filter((s) => {
-      if (!s.last_login) return true;
-      const daysSinceLogin = Math.floor((now.getTime() - new Date(s.last_login).getTime()) / (1000 * 60 * 60 * 24));
-      return daysSinceLogin > 7;
-    }) || [];
+      const totalRevenue = transactions.data?.filter((t) => t.type === 'income').reduce((sum, t) => sum + parseFloat(t.amount), 0) || 0;
 
-    const stockValue = stock.data?.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0) || 0;
+      const recentTransactions = transactions.data?.length || 0;
 
-    const totalRevenue = transactions.data?.filter((t) => t.type === 'income').reduce((sum, t) => sum + parseFloat(t.amount), 0) || 0;
+      setBriefing({
+        greeting: getGreeting(),
+        overdueInvoices,
+        pendingTasks,
+        staffAtRisk: 0,
+        staffNotSignedIn: { count: 0, days: 7 },
+        stockValue,
+        totalRevenue,
+        taskCompletionRate,
+        recentTransactions,
+      });
 
-    const recentTransactions = transactions.data?.length || 0;
-
-    setBriefing({
-      greeting: getGreeting(),
-      overdueInvoices,
-      pendingTasks,
-      staffAtRisk,
-      staffNotSignedIn: { count: staffNotSignedIn.length, days: 7 },
-      stockValue,
-      totalRevenue,
-      taskCompletionRate,
-      recentTransactions,
-    });
-
-    setShowCard(true);
+      setShowCard(true);
+    } catch (error) {
+      console.error('Error generating briefing:', error);
+      setShowCard(false);
+    }
   };
 
   useEffect(() => {
