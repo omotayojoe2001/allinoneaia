@@ -403,7 +403,10 @@ const AppSidebar = () => {
           })}
 
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => {
+              navigate(location.pathname);
+              window.scrollTo(0, 0);
+            }}
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground hover:bg-sidebar-accent transition-colors w-full"
             title="Reload page"
           >

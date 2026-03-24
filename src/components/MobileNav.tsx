@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Bot,
@@ -18,11 +18,12 @@ const mobileNavItems = [
   { icon: Sparkles, label: 'AI', path: '/ai-agent' },
   { icon: Briefcase, label: 'Business', path: '/business' },
   { icon: Palette, label: 'Marketing', path: '/content' },
-  { icon: RotateCw, label: 'Reload', path: null, action: () => window.location.reload() },
+  { icon: RotateCw, label: 'Reload', path: null, action: 'reload' },
 ];
 
 const MobileNav = () => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   return (
     <motion.nav
@@ -34,11 +35,14 @@ const MobileNav = () => {
         {mobileNavItems.map((item) => {
           const isActive = item.path && (location.pathname === item.path || location.pathname.startsWith(item.path));
           
-          if (item.action) {
+          if (item.action === 'reload') {
             return (
               <button
                 key={item.label}
-                onClick={item.action}
+                onClick={() => {
+                  navigate(location.pathname);
+                  window.scrollTo(0, 0);
+                }}
                 className={cn(
                   'flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors relative',
                   'text-sidebar-foreground hover:text-primary'
