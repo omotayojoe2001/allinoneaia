@@ -101,6 +101,9 @@ import TemplateGalleryDebugPage from "@/pages/TemplateGalleryDebugPage";
 import TemplateGalleryPage from "@/pages/TemplateGalleryPage";
 import WebsiteBuilderPage from "@/pages/WebsiteBuilderPage";
 import WebsiteBuilderTestPage from "@/pages/WebsiteBuilderTestPage";
+import WebsiteAnalyticsPage from "@/pages/WebsiteAnalyticsPage";
+import MyWebsitesPage from "@/pages/MyWebsitesPage";
+import WebsitePreviewPage from "@/pages/WebsitePreviewPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -146,6 +149,7 @@ const App = () => (
                 <Route path="/support" element={<SupportPage />} />
                 <Route path="/fund-us" element={<FundUsPage />} />
                 <Route path="/pay/:invoiceId" element={<InvoicePaymentPage />} />
+                <Route path="/preview/:websiteId" element={<WebsitePreviewPage />} />
                 <Route path="/dashboard" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
                 <Route path="/dashboard-test" element={<ProtectedRoute><AppLayout><DashboardTest /></AppLayout></ProtectedRoute>} />
                 <Route path="/ai-agent" element={<ProtectedRoute><AppLayout><AIAgentPage /></AppLayout></ProtectedRoute>} />
@@ -222,7 +226,10 @@ const App = () => (
                 <Route path="/website-builder-test" element={<ProtectedRoute><AppLayout><WebsiteBuilderTestPage /></AppLayout></ProtectedRoute>} />
                 <Route path="/templates-debug" element={<ProtectedRoute><AppLayout><TemplateGalleryDebugPage /></AppLayout></ProtectedRoute>} />
                 <Route path="/templates" element={<ProtectedRoute><AppLayout><TemplateGalleryPage /></AppLayout></ProtectedRoute>} />
+                <Route path="/my-websites" element={<ProtectedRoute><AppLayout><MyWebsitesPage /></AppLayout></ProtectedRoute>} />
                 <Route path="/website-builder/create" element={<ProtectedRoute><AppLayout><WebsiteBuilderPage /></AppLayout></ProtectedRoute>} />
+                <Route path="/website-builder/edit" element={<ProtectedRoute><AppLayout><WebsiteBuilderPage /></AppLayout></ProtectedRoute>} />
+                <Route path="/website-builder/analytics/:websiteId" element={<ProtectedRoute><AppLayout><WebsiteAnalyticsPage /></AppLayout></ProtectedRoute>} />
                 <Route path="/admin/seed-templates" element={<ProtectedRoute><AppLayout><SeedTemplatesPage /></AppLayout></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

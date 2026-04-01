@@ -53,7 +53,13 @@ import {
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: Sparkles, label: "AI Agent", path: "/ai-agent" },
-  { icon: Globe, label: "Website Builder", path: "/templates" },
+  { icon: Globe, label: "Website Builder", path: "/website",
+    tooltip: "Build landing pages, manage your websites",
+    submenu: [
+      { icon: Globe, label: "Templates", path: "/templates" },
+      { icon: Globe, label: "My Websites", path: "/my-websites" },
+    ]
+  },
   { 
     icon: Briefcase, 
     label: "Business", 

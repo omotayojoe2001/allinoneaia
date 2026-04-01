@@ -31,9 +31,10 @@ export default function SeedTemplatesPage() {
               This will create:
             </p>
             <ul className="text-sm text-blue-600 mt-2 ml-4 space-y-1">
-              <li>✓ 6 template categories (Landing Page, Event, Sales, Waitlist, Wedding, Newsletter)</li>
-              <li>✓ 4 beautiful templates with HTML/CSS</li>
-              <li>✓ Form fields for each template</li>
+              <li>✓ 7 template categories (Forms, Landing Page, Event, Sales, Waitlist, Wedding, Newsletter)</li>
+              <li>✓ 10 professional templates with HTML/CSS</li>
+              <li>✓ All templates include phone fields for WhatsApp automation</li>
+              <li>✓ 4 dedicated Forms templates for lead capture</li>
             </ul>
           </div>
 
